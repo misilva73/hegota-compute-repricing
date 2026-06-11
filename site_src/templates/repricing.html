@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Repricing — Compute{% endblock %}
+{% block content %}
+<h1>Compute repricing</h1>
+<p>
+  Of the operations that keep up with the anchor (the
+  <a href="bottleneck.html">bottlenecks</a> are excluded), which should become
+  <strong>cheaper</strong>, and by how much? Each row is one fitted gas parameter.
+  <strong>Proposed gas</strong> is recomputed live as
+  <code>ceil(anchor &times; runtime / 1s)</code> from the worst-case client's measured runtime —
+  the exact formula the estimation uses, rescaled to whatever anchor you pick below. Increases
+  are shown in red and decreases in green; tick the box to see only the ones that get
+  cheaper.
+</p>
+{% if n_excluded %}
+<p class="muted">
+  {{ n_excluded }} sub-{{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s parameter{{ 's' if n_excluded != 1 else '' }}
+  excluded as bottlenecks — see the <a href="bottleneck.html">Bottleneck</a> page.
+</p>
+{% endif %}
+
+<div class="anchor-panel">
+  <div class="anchor-control">
+    <label for="anchor-num"><strong>Throughput anchor</strong></label>
+    <div class="anchor-inputs">
+      <input type="range" id="anchor-range" min="10" max="1000" step="5"
+             value="{{ '%.0f'|format(base_anchor_mgas) }}">
+      <input type="number" id="anchor-num" min="1" max="100000" step="1"
+             value="{{ '%.0f'|format(base_anchor_mgas) }}">
+      <span class="anchor-unit">Mgas/s</span>
+    </div>
+  </div>
+  <p class="anchor-summary" id="summary"></p>
+</div>
+
+<div class="filters">
+  <label>Category
+    <select data-filter="category">
+      <option value="all">All</option>
+      {% for c in rows|map(attribute='category')|unique|sort %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Worst-case client
+    <select data-filter="client">
+      <option value="all">All</option>
+      {% for c in rows|map(attribute='client')|unique|sort %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="checkbox"><input type="checkbox" id="only-increases"> Only ops needing an increase</label>
+  <label class="checkbox"><input type="checkbox" id="only-decreases"> Only ops that get cheaper</label>
+  <span id="result-count"></span>
+</div>
+
+<table id="repricing-table">
+  <thead>
+    <tr>
+      <th>Gas param</th>
+      <th>Category</th>
+      <th>Worst client</th>
+      <th>Current</th>
+      <th>Proposed</th>
+      <th>&Delta;</th>
+      <th>&Delta;&#37;</th>
+      <th>Needs&nbsp;&uarr;</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr data-category="{{ r.category }}" data-client="{{ r.client }}"
+        data-runtime="{{ r.runtime_ms }}" data-current="{{ r.current if r.current is not none else '' }}">
+      <td class="param"><code>{{ r.param }}</code></td>
+      <td>{{ r.category }}</td>
+      <td>{{ r.client }}</td>
+      <td class="current">{{ r.current if r.current is not none else '—' }}</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="anchor_repricing.js"></script>
+{% endblock %}

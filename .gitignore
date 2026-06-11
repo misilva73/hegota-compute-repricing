@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Tooling caches
+.cache/
+.matplotlib/
+
+# Secrets — never commit the Benchmarkoor token
+secrets.json
+
+# Large regenerable fetch artifacts (recreate with `make fetch`).
+# data/raw/meta.json (build footer) and opcounts.json are kept; the bulk is not.
+data/raw/runtimes.csv
+data/raw/mgas_s.csv
+data/raw/bench_data.parquet
+data/raw/trace.parquet

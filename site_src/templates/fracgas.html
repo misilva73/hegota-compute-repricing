@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Throughput loss — Compute{% endblock %}
+{% block content %}
+<h1>Throughput loss of repricing</h1>
+<p>
+  At a throughput anchor the <em>fair</em> price for an op is its exact fractional gas,
+  <code>exact = anchor_rate &middot; runtime_ms / 1000</code> — the cost at which a block full of
+  that op runs at exactly the anchor's Mgas/s. Charging anything else wastes throughput: overcharge
+  a cheap op and the gas limit binds before the real-time budget does, leaving compute capacity
+  idle. This page compares three ways the protocol could price each op at
+  <strong>{{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s</strong>:
+</p>
+<p class="note">
+  <strong>This page focuses on the operations repricing makes cheaper.</strong> Throughput is
+  wasted only when an op is <em>overcharged</em> — its fair price sits below today's cost, so
+  repricing would <em>cut</em> it. Operations that repricing would make <em>more</em> expensive
+  (underpriced today, fair price above the current cost) are undercharged, not wasting throughput,
+  so they are treated as <strong>zero loss</strong> throughout this page rather than offsetting the
+  overcharges. The loss figures below therefore measure only the wasted-throughput side.
+</p>
+<ul>
+  <li><strong>No reprice</strong> — keep today's integer gas cost. Loss = <code>max(current &minus; exact, 0)</code>.</li>
+  <li><strong>Reprice + round</strong> — charge <code>max(&lceil;exact&rceil;, 1)</code>, an integer ≥ 1. Loss = <code>&lceil;exact&rceil; &minus; exact</code>.</li>
+  <li><strong>Reprice + fractional</strong> — charge <code>exact</code> directly. Loss = <strong>0</strong> — the ideal, and the baseline the other two are measured against.</li>
+</ul>
+<p>
+  We score each scenario on two metrics. <strong>Opcode-level loss</strong> is the unweighted
+  per-op <code>loss / charged</code> — the share of the gas you pay for that op that is waste.
+  <strong>Mainnet-traffic loss</strong> is <code>&Sigma; w&middot;loss / G</code>, each base op's
+  loss weighted by how often it runs on mainnet (Xatu opcode traces), over
+  <code>G</code> = {% if summary.denom_is_block %}<strong>total block gas used</strong> — all gas
+  the chain burns, including the 21k intrinsic and calldata{% else %}summed opcode gas (block-gas
+  total unavailable){% endif %} over the same window.
+</p>
+<p class="note">
+  Loss is computed per fitted gas coefficient. The traffic metric weights only each op's
+  <strong>base (per-execution) cost</strong> by its mainnet frequency — size-dependent
+  per-word/round costs (KECCAK, copies, hash precompiles) are shown per-op but left out of the
+  weighted total. Because cost-increase ops are floored to zero loss, no undercharge offsets an
+  overcharge: the totals are a pure sum of wasted throughput over the ops repricing makes cheaper.
+  See the <a href="methodology.html#loss-mapping">methodology</a> for the full mapping.
+</p>
+
+{% if summary %}
+<h2>Headline at {{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s</h2>
+<table id="fracgas-headline">
+  <thead>
+    <tr>
+      <th>Scenario</th>
+      <th>Opcode-level loss<br><small>median / mean per op</small></th>
+      <th>Mainnet-traffic loss<br><small>{% if summary.n_hours %}median / mean per hour{% else %}gas-weighted{% endif %}</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>No reprice <small>(current gas)</small></th>
+      <td>{{ "%.0f"|format(summary.op_median_current * 100) }}% / {{ "%.0f"|format(summary.op_mean_current * 100) }}%</td>
+      {% if summary.n_hours %}
+      <td><strong>{{ "%.1f"|format(summary.hourly_median_current * 100) }}% / {{ "%.1f"|format(summary.hourly_mean_current * 100) }}%</strong></td>
+      {% else %}
+      <td><strong>{{ "%.1f"|format(summary.traffic_current * 100) }}%</strong></td>
+      {% endif %}
+    </tr>
+    <tr>
+      <th>Reprice + round</th>
+      <td>{{ "%.0f"|format(summary.op_median_round * 100) }}% / {{ "%.0f"|format(summary.op_mean_round * 100) }}%</td>
+      {% if summary.n_hours %}
+      <td><strong>{{ "%.1f"|format(summary.hourly_median_round * 100) }}% / {{ "%.1f"|format(summary.hourly_mean_round * 100) }}%</strong></td>
+      {% else %}
+      <td><strong>{{ "%.1f"|format(summary.traffic_round * 100) }}%</strong></td>
+      {% endif %}
+    </tr>
+    <tr class="ideal">
+      <th>Reprice + fractional <small>(ideal)</small></th>
+      <td>0% / 0%</td>
+      <td><strong>{% if summary.n_hours %}0% / 0%{% else %}0%{% endif %}</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p class="takeaway">
+  Repricing and rounding to an integer cuts the throughput wasted on mainnet compute from
+  <strong>{{ "%.1f"|format(summary.traffic_current * 100) }}%</strong> of block gas (today's
+  prices) to <strong>{{ "%.1f"|format(summary.traffic_round * 100) }}%</strong>. Going fully
+  fractional removes that last {{ "%.1f"|format(summary.traffic_round * 100) }}% — the price of
+  insisting on integer gas.{% if summary.n_cheaper is defined %} Under this repricing
+  {{ summary.n_cheaper }} of {{ summary.n_ops }} base ops would see a price decrease.{% endif %}
+  {{ summary.n_below_1 }} of {{ summary.n_ops }} base ops already cost
+  below 1&nbsp;gas at this anchor, which is why rounding (forcing them to ≥&nbsp;1) still leaves a
+  residual loss.
+</p>
+{% else %}
+<p class="warning">No data yet — run <code>make composition</code> then <code>make fracgas</code>.</p>
+{% endif %}
+
+<h2>Loss vs. anchor</h2>
+<p>
+  How each metric moves with the anchor. <strong>No reprice</strong> falls steeply: a higher anchor
+  enlarges every op's fair price, so today's fixed integer cost is a shrinking overcharge — and
+  past a point an op flips to underpriced and drops out of the loss entirely (floored at zero).
+  <strong>Round</strong> stays nearly
+  flat, because rounding discards roughly half a gas per cheap-op execution at any anchor.
+  <strong>Fractional</strong> is zero everywhere. The marker is the current
+  {{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s anchor.
+</p>
+<h3>Opcode-level loss <small>(median per op)</small></h3>
+<div id="sweep-opcode-chart" class="plotly-chart"></div>
+<h3>Mainnet-traffic loss <small>(gas-weighted)</small></h3>
+<div id="sweep-traffic-chart" class="plotly-chart"></div>
+
+{% if summary and summary.n_hours %}
+<h2>Loss per hour of mainnet traffic</h2>
+<p>
+  The mainnet-traffic loss at {{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s recomputed for each
+  hour's own opcode mix over {{ summary.n_hours }} hours of blocks — the spread shows how much the
+  loss depends on what the chain happens to be running. No-reprice (mean
+  <strong>{{ "%.1f"|format(summary.hourly_mean_current * 100) }}%</strong>) sits well above round
+  (mean <strong>{{ "%.1f"|format(summary.hourly_mean_round * 100) }}%</strong>); fractional is 0.
+</p>
+<div id="hourly-chart" class="plotly-chart"></div>
+{% endif %}
+
+<h2>Per-operation loss</h2>
+<p>
+  Loss for each fitted gas parameter at {{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s — the
+  no-reprice overcharge (today's price vs. the fair price) against the rounding overcharge.
+  Fractional pricing would zero every bar. Ops that repricing would make <em>more</em> expensive
+  (underpriced today, fair cost above current) show <strong>zero</strong> no-reprice loss — they
+  need an increase, not a cut, so they waste no throughput here.
+  This is every coefficient, base and per-word; only the base ones carry a mainnet count.
+</p>
+<div id="perop-chart" class="plotly-chart"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="plotly.min.js" charset="utf-8"></script>
+<script>
+  var FRACGAS_ROWS = {{ fracgas_rows_json|safe }};
+  var FRACGAS_SWEEP = {{ fracgas_sweep_json|safe }};
+  var FRACGAS_HOURLY = {{ fracgas_hourly_json|safe }};
+  var ANCHOR_MGAS = {{ anchor_mgas }};
+  var HOURLY_MEAN_ROUND = {{ summary.hourly_mean_round if summary and summary.hourly_mean_round is defined else 'null' }};
+  var HOURLY_MEAN_CURRENT = {{ summary.hourly_mean_current if summary and summary.hourly_mean_current is defined else 'null' }};
+</script>
+<script src="fracgas_charts.js"></script>
+{% endblock %}

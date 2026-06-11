@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}Repricing Methodology — Compute Repricing{% endblock %}
+{% block content %}
+<h1>Repricing Methodology</h1>
+
+<p>
+  The proposed gas parameters come from the actual time each execution client takes to run
+  a targeted set of benchmarks: runtimes are collected from the Benchmarkoor API by
+  <code>benchmarkoor-fetch</code> and turned into gas numbers by <code>evm-gasfit</code>.
+  Five stages turn a wall-clock measurement into a gas number:
+</p>
+<div class="takeaway">
+  <ol>
+    <li><strong>Benchmark data collection</strong> — synthetic blocks stress one operation
+      at a time; Benchmarkoor records each block's runtime and opcode counts.</li>
+    <li><strong>Runtime model</strong> — an NNLS regression isolates the per-unit
+      runtime of each opcode, per client.</li>
+    <li><strong>Glue adjustment</strong> — the overhead of the supporting opcodes
+      that surround the target in each fixture is netted out.</li>
+    <li><strong>Runtime → gas</strong> — the adjusted runtime is converted to gas at
+      a fixed anchor rate.</li>
+    <li><strong>Worst-case selection</strong> — the proposal takes the slowest
+      client for each parameter, then evaluates any derived parameters.</li>
+  </ol>
+</div>
+<p>
+  Sections 1–5 below detail those stages. A further analysis builds on the resulting gas numbers
+  and is documented after them: the <a href="#throughput-loss">throughput-loss analysis</a>, which
+  measures how much throughput each repricing choice — keeping today's prices, rounding, or
+  fractional gas — wastes per op and over real mainnet traffic. The companion
+  <a href="bottleneck_methodology.html">Bottlenecks Methodology</a> covers the separate question of
+  which operations are already too slow to reprice cheaper.
+</p>
+
+<h2>1. Benchmark data collection</h2>
+<p>
+  The proposed gas costs are grounded in the actual time each execution client takes to run
+  a specific set of benchmarks. Similar to the methodology of the
+  <a href="https://github.com/imapp-pl/gas-cost-estimator">Gas Cost Estimator</a> project,
+  we generate synthetic blocks that isolate and stress individual EVM operations and use
+  them to derive the various gas parameters.
+</p>
+<p>
+  Concretely, to benchmark a single operation, different blocks are created by varying the
+  number of times the target operation is executed and by changing the parameter values
+  passed to it. These test blocks come from the
+  <a href="https://github.com/ethereum/execution-spec-tests">EEST benchmark suite</a>. The
+  raw data that feeds this analysis was queried from the following two Benchmarkoor suites:
+</p>
+<ul>
+  {% for suite in meta.suites %}<li><code>{{ suite }}</code></li>{% endfor %}
+</ul>
+<p>
+  The Benchmarkoor tool then runs each block and collects the metrics we need: the block's
+  total execution time and the number of times each operation was executed. Each block is
+  run multiple times on every client to account for variability in execution time. Runtimes
+  are pulled from the Benchmarkoor API by <code>benchmarkoor-fetch</code>; the benchmarks
+  ran on the <strong>{{ meta.fork }}</strong> fork and runs are selected by the
+  <code>.*-full.*</code> run-id pattern. The compute suite drives the target-opcode fits,
+  while the stateful suite feeds the glue-opcode analysis. Each block contributes one row to
+  the model: a measured <code>test_runtime_ms</code> alongside the count of every opcode it
+  executed.
+</p>
+
+<h2>2. Runtime model (NNLS)</h2>
+<p>
+  <code>evm-gasfit</code> solves one non-negative least squares (NNLS) regression per
+  <em>(opcode spec, model variant, client)</em> combination. It models the measured
+  runtime of each fixture as a linear function of how many times the target opcode runs:
+</p>
+<pre><code>test_runtime_ms = intercept + target_coef · opcount + Σ (param_i · opcount · value_i)</code></pre>
+<p>
+  The <code>target_coef</code> — the per-unit runtime of the opcode under study — is the
+  quantity we care about. The trailing sum carries variable-cost terms: opcodes whose cost
+  scales with an operand (MOD/SMOD/ADDMOD/MULMOD by bit-width, KECCAK256 base + per-word,
+  several precompiles) get their own fixture parameters, while constant-cost opcodes
+  (DIV, SDIV) collapse to a single coefficient. Parameters that are constant across all
+  fixtures are dropped automatically — their column is indistinguishable from
+  <code>target_coef</code> — and a fit is skipped entirely if there are too few
+  observations or the opcount never varies.
+</p>
+<p>
+  The <strong>non-negativity</strong> constraint is the point of NNLS: gas costs cannot be
+  negative, and an unconstrained fit would let correlated features take opposite signs to
+  cancel noise. NNLS instead drives such a coefficient to exactly zero or spreads the
+  signal across the remaining features.
+</p>
+<p>
+  Inference is a non-parametric <strong>bootstrap</strong> over the rows of the design
+  matrix (1000 iterations). Each coefficient gets a p-value — the bootstrap share of
+  near-zero estimates — and a 2.5 / 97.5 percentile confidence interval. A fit is flagged
+  as a <em>poor-fit selection</em> when its p-value exceeds <code>0.05</code> or its R²
+  falls below <code>0.5</code>. Fits cover {{ fit.clients | length }} clients (all shown here
+  and on the runtime/glue pages; <code>ethrex</code> is fitted too but held out of the
+  worst-case selection in step&nbsp;5):
+</p>
+<ul>
+  {% for c in fit.clients %}<li><code>{{ c }}</code></li>{% endfor %}
+</ul>
+<p>
+  See the <a href="runtime.html">runtime model page</a> for every per-fit regression
+  summary, or the
+  <a href="https://misilva73.github.io/evm-gasfit/concepts/nnls/">evm-gasfit NNLS docs</a>
+  for the full derivation.
+</p>
+
+<h2>3. Glue adjustment</h2>
+<p>
+  Glue adjustment is <strong>{{ "enabled" if fit.glue_adjustment.enabled else "disabled" }}</strong>.
+  A benchmark never measures an opcode in isolation: the recorded runtime also includes the
+  <em>glue</em> opcodes that set up arguments, advance the program counter, and clean the
+  stack (pushes, dups, loads, control flow). Because NNLS attributes the entire
+  <code>intercept + target_coef · opcount</code> budget to the target, glue that scales with
+  the loop body inflates the estimate. Glue adjustment removes that overhead before the
+  runtime is converted to gas.
+</p>
+<p>
+  <code>evm-gasfit</code> works from a fixed set of canonical glue opcodes, fit in
+  dependency tiers (pure opcodes first, then cycle, then mixed tiers that lean on the
+  already-priced ones). The adjustment runs in three steps:
+</p>
+<ul>
+  <li><strong>Detect</strong> which glue opcodes actually contaminated each measurement, by
+    correlating each glue opcode's per-fixture count against the target
+    <code>opcount</code> and recording the count ratio <code>Δglue / Δopcount</code>.</li>
+  <li><strong>Estimate</strong> a per-unit runtime (<code>glue_runtime_ms</code>) for every
+    <em>(client, glue opcode)</em> with its own tiered NNLS fit.</li>
+  <li><strong>Subtract</strong> the total glue overhead from the target coefficient:</li>
+</ul>
+<pre><code>adjusted_target_coef = max(0, target_coef − Σ_g ratio_g · glue_runtime_ms_g)</code></pre>
+<p>
+  A glue partner only contributes to the sum when its own fit clears the same
+  p-value (&lt; 0.05) and R² (&ge; 0.5) gates; the confidence interval shifts with it and
+  clips at zero. Skipped fits — targets left without a glue correction — are listed in the
+  generated <code>new_gas_proposal.md</code> warnings. See the
+  <a href="glue.html">glue page</a> for the per-fit detail and the
+  <a href="https://misilva73.github.io/evm-gasfit/concepts/glue/">evm-gasfit glue docs</a>
+  for the tier structure.
+</p>
+
+<h2>4. Runtime → gas</h2>
+<p>
+  Each adjusted runtime coefficient is converted to gas at a throughput
+  <strong>anchor</strong> — the gas/second a client should be able to sustain on the worst
+  case. With <code>runtime_ms</code> in milliseconds:
+</p>
+<pre><code>new_gas = ⌈ anchor_rate · runtime_ms / 1000 ⌉</code></pre>
+<p>
+  Because the proposed cost is <strong>exactly linear</strong> in the anchor — and the
+  worst-case client doesn't change with it — the
+  <a href="repricing.html">Repricing page</a> recomputes every cost live in the browser as
+  you move the anchor; no re-fit is needed. The committed baseline is
+  <strong>{{ "{:,}".format(fit.anchor_rate) }}</strong> gas/s
+  ({{ "%.0f"|format(fit.anchor_rate / 1e6) }}&nbsp;Mgas/s). Any op whose measured cost
+  implies a slower throughput than the anchor lands above its current price and is flagged as
+  needing an increase; the ceiling keeps the result an integer.
+</p>
+
+<h2>5. Worst-case selection &amp; derived parameters</h2>
+<p>
+  A single gas parameter is fit many times — once per client, sometimes across several
+  fixtures. The proposal consolidates those in two passes, always erring toward the slowest
+  observation so the cost holds on every implementation:
+</p>
+<ul>
+  <li><strong>Per client</strong> — among the rows that pass the p-value and R² gates, take
+    the one with the largest runtime; if none qualify, the best available is kept and
+    flagged <code>poor_fit</code>.</li>
+  <li><strong>Across clients</strong> — take the client with the largest runtime, among the
+    clients eligible for the worst case. <code>ethrex</code> is fitted and shown on the
+    runtime and glue pages but is <strong>excluded</strong> from this step, so it never sets a
+    proposed gas cost (the <a href="bottleneck_methodology.html">bottleneck analysis</a>
+    excludes it the same way).</li>
+</ul>
+<p>
+  Finally, <em>derived</em> parameters (those defined in terms of others) are evaluated in
+  declaration order against the fitted values, the fork baseline, and any
+  <code>new_params</code> integer baselines, using a small arithmetic-only expression
+  language. The generated <code>new_gas_proposal.md</code> client-comparison section shows how
+  far the worst client sits from the rest of the field. The
+  <a href="https://misilva73.github.io/evm-gasfit/concepts/gas-params/">evm-gasfit gas-params docs</a>
+  cover the selection and derivation rules in full.
+</p>
+
+<h2 id="throughput-loss">Throughput loss of repricing</h2>
+<p>
+  At {{ "%.0f"|format(fit.anchor_rate / 1e6) }}&nbsp;Mgas/s the <em>fair</em> price for an op is its
+  exact fractional gas — the cost at which a block of that op runs at exactly the anchor's Mgas/s.
+  The <a href="fracgas.html">Throughput-loss page</a> compares three ways to price each op against
+  that ideal: keep today's integer cost (<strong>no reprice</strong>), round the fair price up to an
+  integer ≥ 1 (<strong>reprice + round</strong>), or charge the fair price directly
+  (<strong>reprice + fractional</strong>, zero loss). Per fitted parameter:
+</p>
+<pre><code>exact = anchor_rate · runtime_ms / 1000   loss(no reprice) = max(current − exact, 0)   loss(round) = ⌈exact⌉ − exact</code></pre>
+<p>
+  The analysis <strong>focuses on the operations repricing makes cheaper</strong>. Throughput is
+  wasted only by <em>overcharging</em>: an op whose fair price is below today's cost
+  (<code>exact &lt; current</code>) is overpriced, so the gas limit binds before the real-time
+  budget and capacity sits idle. An op that repricing would make <em>more</em> expensive
+  (underpriced today, <code>exact &gt; current</code>) is undercharged — it isn't wasting
+  throughput — so its no-reprice loss is floored at <strong>zero</strong> rather than counted as a
+  negative offset. The no-reprice metric is therefore a pure sum of the wasted throughput on the
+  cost-decrease ops, with no undercharge netting against it.
+</p>
+<p>
+  <strong>Opcode-level loss</strong> is the unweighted per-op <code>loss / charged</code> — the share
+  of the gas you pay that is waste. <strong>Mainnet-traffic loss</strong> sums each per-execution
+  op's loss weighted by how often it runs on mainnet, divided by <code>G</code> = total block
+  <code>gas_used</code> over the same window — all gas the chain burns, including the 21k intrinsic
+  and calldata, so it reads as a share of real block gas. Opcode counts come from Xatu's CBT
+  <code>fct_opcode_gas_by_opcode_hourly</code> table and the denominator from
+  <code>fct_execution_gas_used_hourly</code> (<code>make composition</code> → committed
+  <code>data/tx_composition*.csv</code> + <code>data/tx_block_gas_hourly.csv</code>). Per-word /
+  per-round coefficients are shown per-op but excluded from the weighted aggregate (their weight
+  depends on data sizes not modelled here). Rounding discards roughly half a gas per cheap-op
+  execution at any anchor, so its loss is nearly anchor-flat; the no-reprice loss shrinks as the
+  anchor rises (today's fixed cost becomes a smaller overcharge) and an op drops out of the loss
+  once the anchor pushes it underpriced.
+</p>
+
+<h3 id="loss-mapping">Mapping gas parameters to loss — static vs. dynamic costs</h3>
+<p>
+  Loss is computed <strong>per fitted gas coefficient</strong>, not per opcode. An op whose cost has
+  a static and a size-dependent part is fit as two separate parameters and appears as two rows. For
+  example KECCAK256 splits into <code>OPCODE_KECCAK256_BASE</code> (the per-execution cost) and
+  <code>OPCODE_KECCAK256_PER_WORD</code> (the marginal cost per 32-byte word); the copy opcodes and
+  the hash precompiles split the same way. Each coefficient gets its own modelled
+  <code>runtime_ms</code> (hence its own <code>exact</code>) and is compared against the matching
+  current cost parsed from the proposal table — base against today's base gas, per-word against
+  today's per-word gas.
+</p>
+<p>
+  The two metrics treat the dynamic coefficients differently:
+</p>
+<ul>
+  <li>
+    <strong>Opcode-level loss</strong> includes every coefficient — both base and per-word/round/point
+    — since <code>loss / charged</code> is well-defined for each without any external weight.
+  </li>
+  <li>
+    <strong>Mainnet-traffic loss</strong> weights each coefficient by how often it runs, and Xatu
+    gives us <em>execution counts but not operand sizes</em>. A per-word cost would need the
+    distribution of words hashed or copied per call, which we don't model — so
+    <strong>only the base (static, per-execution) coefficients are weighted in</strong>, each by its
+    opcode's execution count. The per-word / per-round / per-point coefficients
+    (<code>KECCAK256</code>, <code>SHA256</code>, <code>RIPEMD160</code>, <code>IDENTITY</code>,
+    <code>BLAKE2F</code>, <code>ECPAIRING</code>) are <strong>excluded from the weighted aggregate</strong>.
+    The traffic number therefore captures <em>base-cost</em> rounding only and understates the total
+    for size-heavy ops; the per-op table still shows their loss individually.
+  </li>
+</ul>
+<p>
+  PUSH/DUP/SWAP variants are normalized to one parameter (<code>PUSH2</code>→<code>PUSH</code>) and
+  their mainnet counts summed, so the single base coefficient carries the combined frequency.
+</p>
+<p>
+  <strong>Ops that need a price increase are held at zero loss.</strong> When an op is
+  <em>underpriced</em> today — its fair cost at the anchor exceeds the current gas
+  (<code>exact &gt; current</code>, e.g. <code>EXP</code>, whose modelled cost is far above today's
+  base) — repricing would <em>raise</em> its cost, not cut it. A block heavy in that op runs
+  <em>slower</em> than the anchor implies; it is undercharged, not wasting throughput — the
+  underpricing the <a href="bottleneck.html">bottleneck analysis</a> and a repricing increase exist
+  to fix. Because this page focuses on the cost-<em>decrease</em> ops, the no-reprice loss is floored
+  at zero for these (<code>max(current − exact, 0)</code>) rather than counted as a negative
+  undercharge. So no undercharge offsets the overcharges, and the no-reprice headline is a pure sum
+  of wasted throughput over the ops repricing makes cheaper — not a signed net. The round and
+  fractional scenarios still price the underpriced ops correctly (<code>⌈exact⌉ ≥ exact</code> raises
+  the cost). Coefficients with a zero or unparseable current cost are dropped from the no-reprice
+  metric only.
+</p>
+
+<h2>Scope &amp; coverage</h2>
+<p>
+  This analysis covers the EVM's <strong>compute operations</strong>: arithmetic, bitwise,
+  comparison, stack, control-flow, hashing (KECCAK256), memory, block/transaction and call
+  context, and every precompile (including BLS12-381). The genuinely state- and IO-bound
+  families — storage (SLOAD/SSTORE), account access, transient storage, CREATE, and BLOCKHASH
+  — are deliberately excluded, as their runtime is dominated by state access rather than
+  compute. The op set is the corresponding <code>evm-gasfit</code> presets, declared in
+  <code>fit.yaml</code>.
+</p>
+<p>
+  A few coverage gaps are worth noting: the per-word coefficients for CALLDATACOPY,
+  RETURNDATACOPY and MCOPY aren't fit because the benchmark fixtures don't vary copy size
+  (only their base cost is priced), the BLS12-381 G1/G2 multi-scalar-multiplication
+  precompiles had no matching fixtures in this run, and the <strong>MODEXP</strong> precompile
+  has no preset upstream. These params simply don't appear in the table.
+</p>
+
+<h2>Gas-cost baseline</h2>
+<p>
+  Proposed values are compared against the <strong>{{ fit.gas_costs.fork }}</strong>
+  gas-cost table — distinct from the {{ meta.fork }} fork the benchmarks ran on. The
+  baseline is the {{ fit.gas_costs.fork }} <code>GasCosts</code> patched with any config
+  overrides and <code>new_params</code> baselines, and it is the cost reference each proposed
+  value diffs against.
+</p>
+
+<h2>Reproducibility</h2>
+<p>Re-run the full pipeline end to end:</p>
+<pre><code>make fetch        # → data/raw/    (needs a Benchmarkoor token in secrets.json)
+make gasfit       # → data/gasfit/
+make bottlenecks  # → data/bottlenecks.csv   (worst-case Mgas/s per op)
+make composition  # → data/tx_composition*.csv + tx_block_gas_hourly.csv (Xatu; needs xatu creds)
+make fracgas      # → data/fracgas*.csv      (repricing throughput loss at the anchor)
+make site         # renders this site into docs/</code></pre>
+<p>
+  The committed <code>data/</code> directory makes the published site self-contained:
+  every figure and table on these pages traces back to those artifacts.
+</p>
+{% endblock %}

@@ -1,0 +1,2 @@
+anchor_mgas,op_mean_round,op_median_round,op_mean_current,op_median_current,traffic_round,traffic_current,frac_below_1,n_below_1,n_ops,n_current,hourly_mean_round,hourly_mean_current,hourly_median_round,hourly_median_current,n_hours,denom_is_block
+100.0,0.3061509785448758,0.27976178893213755,0.6463972738615905,0.7191489997962776,0.026384618696885968,0.12437422684038144,0.4931506849315068,36,73,72,0.026385951303279517,0.12438009169206615,0.026195562438007657,0.12336070395132928,720,True

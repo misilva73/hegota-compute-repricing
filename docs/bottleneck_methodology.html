@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bottlenecks Methodology — Compute Repricing</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-bottleneck_methodology">
+  <header class="site-header">
+    <div class="topbar-primary">
+      <a class="site-title" href="index.html">Compute Repricing</a>
+      <nav class="site-nav">
+        <a href="index.html">Overview</a>
+        <a href="bottleneck.html" class="active">Bottlenecks</a>
+        <a href="repricing.html">Repricing</a>
+      </nav>
+    </div>
+    <nav class="topbar-secondary">
+      <a href="bottleneck.html">Bottleneck table</a>
+      <a href="bottleneck_methodology.html" class="active">Bottlenecks Methodology</a>
+    </nav>
+  </header>
+
+  <main class="content">
+<h1>Bottlenecks Methodology</h1>
+
+<p>
+  Repricing only makes sense for operations that can keep up with the throughput anchor. The
+  <a href="bottleneck.html">Bottleneck page</a> measures each compute operation's
+  <strong>worst-case throughput</strong> directly from the benchmarks and flags the ones already
+  too slow to be priced any cheaper. Two stages turn the raw benchmark runs into that verdict:
+</p>
+<div class="takeaway">
+  <ol>
+    <li><strong>Benchmark data collection</strong> — synthetic blocks stress one operation
+      at a time; Benchmarkoor records each block's runtime, opcode counts, and throughput
+      (<code>test_mgas_s</code>).</li>
+    <li><strong>Bottleneck analysis</strong> — the worst-case megagas/second per operation is
+      taken across fixtures and clients and compared against the anchor's throughput ceiling.</li>
+  </ol>
+</div>
+<p>
+  The companion <a href="methodology.html">Repricing Methodology</a> covers how those same
+  benchmarks are turned into proposed gas numbers.
+</p>
+
+<h2>1. Benchmark data collection</h2>
+<p>
+  The bottleneck verdict is grounded in the actual time each execution client takes to run
+  a specific set of benchmarks. Similar to the methodology of the
+  <a href="https://github.com/imapp-pl/gas-cost-estimator">Gas Cost Estimator</a> project,
+  we generate synthetic blocks that isolate and stress individual EVM operations and use
+  them to derive each operation's throughput.
+</p>
+<p>
+  Concretely, to benchmark a single operation, different blocks are created by varying the
+  number of times the target operation is executed and by changing the parameter values
+  passed to it. These test blocks come from the
+  <a href="https://github.com/ethereum/execution-spec-tests">EEST benchmark suite</a>. The
+  raw data that feeds this analysis was queried from the following two Benchmarkoor suites:
+</p>
+<ul>
+<li><code>3182dda7b93dee61</code></li><li><code>a11611f320a39015</code></li></ul>
+<p>
+  The Benchmarkoor tool then runs each block and collects the metrics we need: the block's
+  total execution time, its throughput in megagas/second, and the number of times each operation
+  was executed. Each block is run multiple times on every client to account for variability in
+  execution time. Runtimes and throughput are pulled from the Benchmarkoor API by
+  <code>benchmarkoor-fetch</code>; the benchmarks ran on the <strong>amsterdam</strong> fork
+  and runs are selected by the <code>.*-full.*</code> run-id pattern. The bottleneck analysis uses
+  the <code>test_mgas_s</code> (megagas/second) metric recorded alongside the runtimes.
+</p>
+
+<h2>2. Bottleneck analysis (throughput)</h2>
+<p>
+  The <a href="bottleneck.html">Bottleneck page</a> measures each compute operation's
+  <strong>worst-case throughput</strong> directly from the benchmarks, using the
+  <code>test_mgas_s</code> (megagas/second) metric. Everything is "slowest binds":
+</p>
+<ul>
+  <li>Only the <strong>300M-gas</strong> fixtures are used (the largest blocks, where steady-state throughput dominates).</li>
+  <li>For each (operation, fixture, client), the worst-case estimate is the <strong>1st percentile</strong> of <code>test_mgas_s</code> across runs — the slow tail, minus the single worst outlier.</li>
+  <li>Per (operation, client), take the <strong>minimum</strong> over that operation's fixtures; the worst-case is the <strong>minimum</strong> across the eligible clients. As on the repricing side, <code>ethrex</code> is shown per-client but excluded from the worst-case minimum.</li>
+</ul>
+<p>
+  The throughput ceiling is taken to be <strong>100&nbsp;Mgas/s</strong>,
+  the rate a plain ETH transfer sustains — an assumption, not a measurement (a transfer benchmark
+  actually clocks lower). An operation below it is a <em>bottleneck</em>: it already runs slower
+  than a transfer, so it cannot be priced cheaper, and it is dropped from the
+  <a href="repricing.html">Repricing view</a>. In practice the genuine sub-ceiling ops are all
+  state/IO (storage, calls, transfers), which are out of this dashboard's scope, so the compute set
+  typically shows none.
+</p>
+
+<h2>Scope &amp; coverage</h2>
+<p>
+  This analysis covers the EVM's <strong>compute operations</strong>: arithmetic, bitwise,
+  comparison, stack, control-flow, hashing (KECCAK256), memory, block/transaction and call
+  context, and every precompile (including BLS12-381). The genuinely state- and IO-bound
+  families — storage (SLOAD/SSTORE), account access, transient storage, CREATE, and BLOCKHASH
+  — are deliberately excluded, as their runtime is dominated by state access rather than
+  compute. The op set is the corresponding <code>evm-gasfit</code> presets, declared in
+  <code>fit.yaml</code>.
+</p>
+
+<h2>Reproducibility</h2>
+<p>Re-run the parts of the pipeline this page depends on:</p>
+<pre><code>make fetch        # → data/raw/    (needs a Benchmarkoor token in secrets.json)
+make bottlenecks  # → data/bottlenecks.csv   (worst-case Mgas/s per op)
+make site         # renders this site into docs/</code></pre>
+<p>
+  The committed <code>data/</code> directory makes the published site self-contained:
+  every figure and table on these pages traces back to those artifacts.
+</p>
+  </main>
+
+  <footer class="site-footer">
+    <p class="repro">
+      Suites
+<code>3182dda7b93dee61</code>, <code>a11611f320a39015</code>      · run 2026-06-10T11:48:58Z
+      · evm-gasfit 0.0.4
+      · benchmarkoor-fetch 0.3.0
+      · commit <code>1f87b93</code>
+    </p>
+  </footer>
+</body>
+</html>

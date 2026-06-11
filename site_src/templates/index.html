@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Compute Repricing — Overview{% endblock %}
+{% block content %}
+<h1>EVM Compute Repricing</h1>
+
+<p>
+  This dashboard studies the EVM's <strong>compute operations</strong> — arithmetic, bitwise,
+  comparison, stack, control-flow, hashing, memory, context, and every precompile — from
+  empirical client benchmark runtimes, around a <strong>{{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s</strong>
+  throughput anchor (the rate a plain ETH transfer sustains, which the chain can't exceed). It
+  asks two paired questions:
+</p>
+
+<ol>
+  <li><strong>Bottlenecks</strong> — which operations are already too slow to keep up, i.e. run
+    below {{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s in the worst case? Those cannot be
+    repriced cheaper.</li>
+  <li><strong>Reprice</strong> — of the operations that <em>do</em> keep up, which are overpriced
+    for their measured runtime and should become <strong>cheaper</strong>, and by how much?</li>
+</ol>
+
+<p class="takeaway">
+  <strong>{{ n_below }}</strong> of {{ n_ops }} compute operations fall below the
+  {{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s ceiling (the
+  <a href="bottleneck.html">Bottleneck</a> page). Of the rest, at this anchor
+  <strong>{{ n_down }}</strong> of {{ n_params }} fitted parameters could be reduced — open
+  <a href="repricing.html">Repricing</a> and drag the anchor to see the costs update live.
+</p>
+
+<h2>Bottlenecks</h2>
+<div class="cards">
+  <a class="card" href="bottleneck.html">
+    <h3>Bottleneck table &rarr;</h3>
+    <p>Per-operation worst-case throughput (Mgas/s) across clients, flagging the ops that run below the {{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s ceiling.</p>
+  </a>
+  <a class="card" href="bottleneck_methodology.html">
+    <h3>Bottlenecks Methodology &rarr;</h3>
+    <p>How the worst-case throughput is measured from the benchmarks and compared against the {{ "%.0f"|format(base_anchor_mgas) }}&nbsp;Mgas/s ceiling.</p>
+  </a>
+</div>
+
+<h2>Repricing</h2>
+<div class="cards">
+  <a class="card" href="repricing.html">
+    <h3>Repricing table &rarr;</h3>
+    <p>Interactive: set the anchor, see current vs. proposed gas, the diff, and which ops get cheaper — recomputed live in the browser.</p>
+  </a>
+  <a class="card" href="fracgas.html">
+    <h3>Throughput loss &rarr;</h3>
+    <p>How much throughput each repricing choice wastes — no reprice, reprice + round, reprice + fractional — per op and over real mainnet traffic.</p>
+  </a>
+  <a class="card" href="runtime.html">
+    <h3>Runtime model &rarr;</h3>
+    <p>Per-opcode NNLS fits of runtime against opcode count, filterable by opcode and client.</p>
+  </a>
+  <a class="card" href="glue.html">
+    <h3>Glue runtime &rarr;</h3>
+    <p>Per-client fits for the priced glue opcodes that the target coefficients are netted against.</p>
+  </a>
+  <a class="card" href="reference.html">
+    <h3>Test reference &rarr;</h3>
+    <p>The opcode &harr; benchmark mapping: which test and fixture parameters price each operation, and the gas parameters it produces.</p>
+  </a>
+  <a class="card" href="methodology.html">
+    <h3>Repricing Methodology &rarr;</h3>
+    <p>Benchmark suites, regression model, anchor, worst-case selection, and the throughput-loss method.</p>
+  </a>
+</div>
+{% endblock %}

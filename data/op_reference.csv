@@ -1,0 +1,89 @@
+target_op,category,preset,test_name,fixture_params,fixture_filter,gas_params,count_source
+ADD,Arithmetic,arithmetic_add,test_arithmetic,,opcode_ADD-,OPCODE_ADD,
+ADDMOD,Arithmetic,arithmetic_addmod,test_arithmetic,,opcode_ADDMOD,OPCODE_ADDMOD,
+ADDMOD,Arithmetic,arithmetic_addmod_bits,test_mod_arithmetic,mod_bits,opcode_ADDMOD,OPCODE_ADDMOD,
+DIV,Arithmetic,arithmetic_div,test_arithmetic,,opcode_DIV,OPCODE_DIV,
+EXP,Arithmetic,arithmetic_exp,test_arithmetic,,opcode_EXP,OPCODE_EXP_BASE,
+MOD,Arithmetic,arithmetic_mod,test_arithmetic,,opcode_MOD,OPCODE_MOD,
+MOD,Arithmetic,arithmetic_mod_bits,test_mod,mod_bits,opcode_MOD,OPCODE_MOD,
+MUL,Arithmetic,arithmetic_mul,test_arithmetic,,opcode_MUL-,OPCODE_MUL,
+MULMOD,Arithmetic,arithmetic_mulmod,test_arithmetic,,opcode_MULMOD,OPCODE_MULMOD,
+MULMOD,Arithmetic,arithmetic_mulmod_bits,test_mod_arithmetic,mod_bits,opcode_MULMOD,OPCODE_MULMOD,
+SDIV,Arithmetic,arithmetic_sdiv,test_arithmetic,,opcode_SDIV,OPCODE_SDIV,
+SIGNEXTEND,Arithmetic,arithmetic_signextend,test_arithmetic,,opcode_SIGNEXTEND,OPCODE_SIGNEXTEND,
+SMOD,Arithmetic,arithmetic_smod,test_arithmetic,,opcode_SMOD,OPCODE_SMOD,
+SMOD,Arithmetic,arithmetic_smod_bits,test_mod,mod_bits,opcode_SMOD,OPCODE_SMOD,
+SUB,Arithmetic,arithmetic_sub,test_arithmetic,,opcode_SUB,OPCODE_SUB,
+BLS12_G1ADD,BLS12-381,precompile_bls_g1add,test_bls12_381,,bls12_g1add,PRECOMPILE_BLS_G1ADD,STATICCALL
+BLS12_G1MSM,BLS12-381,precompile_bls_g1msm,test_bls12_g1_msm,k,bls12_g1msm,PRECOMPILE_BLS_G1MUL,STATICCALL
+BLS12_G2ADD,BLS12-381,precompile_bls_g2add,test_bls12_381,,bls12_g2add,PRECOMPILE_BLS_G2ADD,STATICCALL
+BLS12_G2MSM,BLS12-381,precompile_bls_g2msm,test_bls12_g2_msm,k,bls12_g2msm,PRECOMPILE_BLS_G2MUL,STATICCALL
+BLS12_MAP_FP_TO_G1,BLS12-381,precompile_bls_fp_to_g1,test_bls12_381,,bls12_fp_to_g1,PRECOMPILE_BLS_G1MAP,STATICCALL
+BLS12_MAP_FP_TO_G2,BLS12-381,precompile_bls_fp_to_g2,test_bls12_381,,bls12_fp_to_g2,PRECOMPILE_BLS_G2MAP,STATICCALL
+AND,Bitwise,bitwise_and,test_bitwise,,opcode_AND,OPCODE_AND,
+BYTE,Bitwise,bitwise_byte,test_bitwise,,opcode_BYTE,OPCODE_BYTE,
+CLZ,Bitwise,bitwise_clz,test_clz_same,,,OPCODE_CLZ,
+NOT,Bitwise,bitwise_not,test_not_op,,,OPCODE_NOT,
+OR,Bitwise,bitwise_or,test_bitwise,,opcode_OR,OPCODE_OR,
+SAR,Bitwise,bitwise_sar,test_bitwise,,opcode_SAR,OPCODE_SAR,
+SHL,Bitwise,bitwise_shl,test_bitwise,,opcode_SHL,OPCODE_SHL,
+SHR,Bitwise,bitwise_shr,test_bitwise,,opcode_SHR,OPCODE_SHR,
+XOR,Bitwise,bitwise_xor,test_bitwise,,opcode_XOR,OPCODE_XOR,
+BASEFEE,Block/tx,block_basefee,test_block_context_ops,,opcode_BASEFEE,OPCODE_BASEFEE,
+BLOBBASEFEE,Block/tx,block_blobbasefee,test_block_context_ops,,opcode_BLOBBASEFEE,OPCODE_BLOBBASEFEE,
+CHAINID,Block/tx,block_chainid,test_block_context_ops,,opcode_CHAINID,OPCODE_CHAINID,
+COINBASE,Block/tx,block_coinbase,test_block_context_ops,,opcode_COINBASE,OPCODE_COINBASE,
+GASLIMIT,Block/tx,block_gaslimit,test_block_context_ops,,opcode_GASLIMIT,OPCODE_GASLIMIT,
+GASPRICE,Block/tx,tx_gasprice,test_call_frame_context_ops,,opcode_GASPRICE,OPCODE_GASPRICE,
+NUMBER,Block/tx,block_number,test_block_context_ops,,opcode_NUMBER,OPCODE_NUMBER,
+ORIGIN,Block/tx,tx_origin,test_call_frame_context_ops,,opcode_ORIGIN,OPCODE_ORIGIN,
+PREVRANDAO,Block/tx,block_prevrandao,test_block_context_ops,,opcode_PREVRANDAO,OPCODE_PREVRANDAO,
+TIMESTAMP,Block/tx,block_timestamp,test_block_context_ops,,opcode_TIMESTAMP,OPCODE_TIMESTAMP,
+ADDRESS,Call context,call_address,test_call_frame_context_ops,,opcode_ADDRESS,OPCODE_ADDRESS,
+CALLDATACOPY,Call context,call_calldatacopy,test_calldatacopy_from_origin,"calldata_size, mem_size",,"OPCODE_CALLDATACOPY_BASE, OPCODE_CALLDATACOPY_PER_WORD",
+CALLDATALOAD,Call context,call_calldataload,test_calldataload,calldata_size,,OPCODE_CALLDATALOAD,
+CALLDATASIZE,Call context,call_calldatasize,test_calldatasize,calldata_size,,OPCODE_CALLDATASIZE,
+CALLER,Call context,call_caller,test_call_frame_context_ops,,opcode_CALLER,OPCODE_CALLER,
+CALLVALUE,Call context,call_callvalue,test_callvalue_from_origin,,,OPCODE_CALLVALUE,
+RETURNDATACOPY,Call context,call_returndatacopy,test_returndatacopy,"return_size, mem_size",,"OPCODE_RETURNDATACOPY_BASE, OPCODE_RETURNDATACOPY_PER_WORD",
+RETURNDATASIZE,Call context,call_returndatasize,test_returndatasize_nonzero,returned_size,,OPCODE_RETURNDATASIZE,
+EQ,Comparison,comparison_eq,test_comparison,,opcode_EQ,OPCODE_EQ,
+GT,Comparison,comparison_gt,test_comparison,,opcode_GT,OPCODE_GT,
+ISZERO,Comparison,comparison_iszero,test_iszero,,,OPCODE_ISZERO,
+LT,Comparison,comparison_lt,test_comparison,,opcode_LT,OPCODE_LT,
+SGT,Comparison,comparison_sgt,test_comparison,,opcode_SGT,OPCODE_SGT,
+SLT,Comparison,comparison_slt,test_comparison,,opcode_SLT,OPCODE_SLT,
+GAS,Control flow,control_flow_gas,test_gas_op,,,OPCODE_GAS,
+JUMP,Control flow,control_flow_jump,test_jump_benchmark,,,OPCODE_JUMP,
+JUMPDEST,Control flow,control_flow_jumpdest,test_jumpdests,,,OPCODE_JUMPDEST,
+JUMPI,Control flow,control_flow_jumpi,test_jumpi_fallthrough,,,OPCODE_JUMPI,
+PC,Control flow,control_flow_pc,test_pc_op,,,OPCODE_PC,
+KECCAK256,Hashing,keccak,test_keccak_diff_mem_msg_sizes,mem_size,,"OPCODE_KECCAK256_BASE, OPCODE_KECCAK256_PER_WORD",
+MCOPY,Memory,memory_mcopy,test_mcopy,"copy_size, mem_size",,"OPCODE_MCOPY_BASE, OPCODE_MCOPY_PER_WORD",
+MLOAD,Memory,memory_mload,test_memory_access,mem_size,opcode_MLOAD,OPCODE_MLOAD_BASE,
+MSIZE,Memory,memory_msize,test_msize,,,OPCODE_MSIZE,
+MSTORE,Memory,memory_mstore,test_memory_access,mem_size,opcode_MSTORE-,OPCODE_MSTORE_BASE,
+MSTORE8,Memory,memory_mstore8,test_memory_access,mem_size,opcode_MSTORE8,OPCODE_MSTORE8_BASE,
+BLAKE2F,Precompile,precompile_blake2f,test_blake2f_benchmark,,blake2f,"PRECOMPILE_BLAKE2F_BASE, PRECOMPILE_BLAKE2F_PER_ROUND",STATICCALL
+BLAKE2F,Precompile,precompile_blake2f_uncachable,test_blake2f_uncachable,,blake2f,"PRECOMPILE_BLAKE2F_BASE, PRECOMPILE_BLAKE2F_PER_ROUND",STATICCALL
+ECADD,Precompile,precompile_bn128_add,test_alt_bn128,bn128,"bn128_, !bn128_mul",PRECOMPILE_ECADD,STATICCALL
+ECADD,Precompile,precompile_bn128_add_uncachable,test_alt_bn128_uncachable,,ec_add,PRECOMPILE_ECADD,STATICCALL
+ECMUL,Precompile,precompile_bn128_mul,test_alt_bn128,,bn128_mul_,PRECOMPILE_ECMUL,STATICCALL
+ECMUL,Precompile,precompile_bn128_mul_uncachable,test_alt_bn128_uncachable,,ec_mul_,PRECOMPILE_ECMUL,STATICCALL
+ECPAIRING,Precompile,precompile_bn128_pairing,test_alt_bn128_benchmark,,num_pairs,"PRECOMPILE_ECPAIRING_BASE, PRECOMPILE_ECPAIRING_PER_POINT",STATICCALL
+ECPAIRING,Precompile,precompile_bn128_pairing_alt,test_ec_pairing,,,"PRECOMPILE_ECPAIRING_BASE, PRECOMPILE_ECPAIRING_PER_POINT",STATICCALL
+ECRECOVER,Precompile,precompile_ecrecover,test_ecrecover,,ecrecover,PRECOMPILE_ECRECOVER,STATICCALL
+IDENTITY,Precompile,precompile_identity_fixed,test_identity_fixed_size,,identity,"PRECOMPILE_IDENTITY_BASE, PRECOMPILE_IDENTITY_PER_WORD",STATICCALL
+IDENTITY,Precompile,precompile_identity_uncachable,test_identity_uncachable,,identity,"PRECOMPILE_IDENTITY_BASE, PRECOMPILE_IDENTITY_PER_WORD",STATICCALL
+P256VERIFY,Precompile,precompile_p256verify,test_p256verify,,p256verify,PRECOMPILE_P256VERIFY,STATICCALL
+P256VERIFY,Precompile,precompile_p256verify_uncachable,test_p256verify_uncachable,,p256verify,PRECOMPILE_P256VERIFY,STATICCALL
+POINT_EVALUATION,Precompile,precompile_point_evaluation,test_point_evaluation,,point_evaluation,PRECOMPILE_POINT_EVALUATION,STATICCALL
+POINT_EVALUATION,Precompile,precompile_point_evaluation_uncachable,test_point_evaluation_uncachable,,point_evaluation,PRECOMPILE_POINT_EVALUATION,STATICCALL
+RIPEMD160,Precompile,precompile_ripemd160_fixed,test_ripemd160_fixed_size,,ripemd160,"PRECOMPILE_RIPEMD160_BASE, PRECOMPILE_RIPEMD160_PER_WORD",STATICCALL
+RIPEMD160,Precompile,precompile_ripemd160_uncachable,test_ripemd160_uncachable,,ripemd160,"PRECOMPILE_RIPEMD160_BASE, PRECOMPILE_RIPEMD160_PER_WORD",STATICCALL
+SHA256,Precompile,precompile_sha256_fixed,test_sha256_fixed_size,,sha256,"PRECOMPILE_SHA256_BASE, PRECOMPILE_SHA256_PER_WORD",STATICCALL
+SHA256,Precompile,precompile_sha256_uncachable,test_sha256_uncachable,,sha256,"PRECOMPILE_SHA256_BASE, PRECOMPILE_SHA256_PER_WORD",STATICCALL
+DUP* (per opcode),Stack,stack_dup,test_dup,opcode,,OPCODE_DUP,
+PUSH* (per opcode),Stack,stack_push,test_push,opcode,opcode_PUSH,OPCODE_PUSH,
+PUSH0,Stack,stack_push0,test_push,,opcode_PUSH0-,OPCODE_PUSH0,
+SWAP* (per opcode),Stack,stack_swap,test_swap,opcode,,OPCODE_SWAP,

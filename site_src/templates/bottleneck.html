@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Bottlenecks — Compute{% endblock %}
+{% block content %}
+<h1>Operation bottlenecks</h1>
+<p>
+  Each row is one compute operation's <strong>worst-case throughput</strong> on the
+  300M-gas benchmark fixtures: the 1st percentile of <code>test&#95;mgas&#95;s</code> per
+  fixture (the slow tail), the slowest fixture per client, then the slowest client.
+  <code>ethrex</code> is shown per-client below but excluded from that worst-case minimum
+  (as on the <a href="repricing.html">Repricing</a> side). The
+  assumed throughput ceiling defaults to
+  <strong>{{ "%.0f"|format(anchor_mgas) }}&nbsp;Mgas/s</strong> — the rate a plain ETH
+  transfer sustains, which the chain can't exceed — but you can move the anchor below. An
+  operation below the anchor is a <em>bottleneck</em>: it already runs slower than a
+  transfer at that rate, so it cannot be repriced cheaper and is excluded from the
+  <a href="repricing.html">Repricing</a> view.
+</p>
+
+<div class="anchor-panel">
+  <div class="anchor-control">
+    <label for="anchor-num"><strong>Throughput anchor</strong></label>
+    <div class="anchor-inputs">
+      <input type="range" id="anchor-range" min="10" max="1000" step="5"
+             value="{{ '%.0f'|format(anchor_mgas) }}">
+      <input type="number" id="anchor-num" min="1" max="100000" step="1"
+             value="{{ '%.0f'|format(anchor_mgas) }}">
+      <span class="anchor-unit">Mgas/s</span>
+    </div>
+  </div>
+</div>
+<p class="anchor-summary takeaway" id="summary"></p>
+
+<div class="filters">
+  <label>Category
+    <select data-filter="category">
+      <option value="all">All</option>
+      {% for c in rows|map(attribute='category')|unique|sort %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="checkbox"><input type="checkbox" id="only-below"> Only bottlenecks (&lt;<span id="anchor-label">{{ "%.0f"|format(anchor_mgas) }}</span>)</label>
+  <span id="result-count"></span>
+</div>
+
+<table id="bottleneck-table">
+  <thead>
+    <tr>
+      <th data-sort="opcode">Opcode</th>
+      <th data-sort="category">Category</th>
+      <th data-sort="worst" data-num="1">Worst Mgas/s</th>
+      {% for c in clients %}<th data-sort="c_{{ c }}" data-num="1">{{ c }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr data-category="{{ r.category }}" data-below="{{ '1' if r.below else '0' }}"
+        data-opcode="{{ r.opcode }}" data-worst="{{ '%.3f'|format(r.worst) }}"
+        {% for c in clients %}data-c_{{ c }}="{{ '%.3f'|format(r.per_client[c]) if r.per_client[c] is not none else '' }}" {% endfor %}>
+      <td class="opcode"><code>{{ r.opcode }}</code></td>
+      <td>{{ r.category }}</td>
+      <td class="worst{% if r.below %} worst-case{% endif %}">{{ "%.1f"|format(r.worst) }}</td>
+      {% for c in clients %}<td class="client-cell{% if r.per_client[c] is not none and r.per_client[c] < anchor_mgas %} worst-case{% endif %}" data-mgas="{{ '%.3f'|format(r.per_client[c]) if r.per_client[c] is not none else '' }}">{{ "%.1f"|format(r.per_client[c]) if r.per_client[c] is not none else '—' }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="bottleneck_filter.js"></script>
+{% endblock %}

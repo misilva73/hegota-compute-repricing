@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Compute Repricing{% endblock %}</title>
+  <link rel="stylesheet" href="style.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="page-{{ page }}">
+  {% set bottleneck_pages = ['bottleneck', 'bottleneck_methodology'] %}
+  {% set reprice_pages = ['repricing', 'fracgas', 'runtime', 'glue', 'reference', 'methodology'] %}
+  <header class="site-header">
+    <div class="topbar-primary">
+      <a class="site-title" href="index.html">Compute Repricing</a>
+      <nav class="site-nav">
+        <a href="index.html"{% if page == 'index' %} class="active"{% endif %}>Overview</a>
+        <a href="bottleneck.html"{% if page in bottleneck_pages %} class="active"{% endif %}>Bottlenecks</a>
+        <a href="repricing.html"{% if page in reprice_pages %} class="active"{% endif %}>Repricing</a>
+      </nav>
+    </div>
+    {% if page in bottleneck_pages %}
+    <nav class="topbar-secondary">
+      <a href="bottleneck.html"{% if page == 'bottleneck' %} class="active"{% endif %}>Bottleneck table</a>
+      <a href="bottleneck_methodology.html"{% if page == 'bottleneck_methodology' %} class="active"{% endif %}>Bottlenecks Methodology</a>
+    </nav>
+    {% elif page in reprice_pages %}
+    <nav class="topbar-secondary">
+      <a href="repricing.html"{% if page == 'repricing' %} class="active"{% endif %}>Repricing table</a>
+      <a href="fracgas.html"{% if page == 'fracgas' %} class="active"{% endif %}>Throughput loss</a>
+      <a href="runtime.html"{% if page == 'runtime' %} class="active"{% endif %}>Runtime model</a>
+      <a href="glue.html"{% if page == 'glue' %} class="active"{% endif %}>Glue runtime</a>
+      <a href="reference.html"{% if page == 'reference' %} class="active"{% endif %}>Test reference</a>
+      <a href="methodology.html"{% if page == 'methodology' %} class="active"{% endif %}>Repricing Methodology</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p class="repro">
+      {% if meta %}
+      Suites
+      {% for suite in meta.suites %}<code>{{ suite }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+      · run {{ meta.run_timestamp }}
+      · evm-gasfit {{ meta.gasfit_version }}
+      · benchmarkoor-fetch {{ meta.fetch_version }}
+      · commit <code>{{ meta.commit }}</code>
+      {% else %}
+      Reproducibility footer rendered at build time.
+      {% endif %}
+    </p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

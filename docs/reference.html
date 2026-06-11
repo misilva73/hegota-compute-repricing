@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test reference — Compute</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-reference">
+  <header class="site-header">
+    <div class="topbar-primary">
+      <a class="site-title" href="index.html">Compute Repricing</a>
+      <nav class="site-nav">
+        <a href="index.html">Overview</a>
+        <a href="bottleneck.html">Bottlenecks</a>
+        <a href="repricing.html" class="active">Repricing</a>
+      </nav>
+    </div>
+    <nav class="topbar-secondary">
+      <a href="repricing.html">Repricing table</a>
+      <a href="fracgas.html">Throughput loss</a>
+      <a href="runtime.html">Runtime model</a>
+      <a href="glue.html">Glue runtime</a>
+      <a href="reference.html" class="active">Test reference</a>
+      <a href="methodology.html">Repricing Methodology</a>
+    </nav>
+  </header>
+
+  <main class="content">
+<h1>Test reference: operation &harr; benchmark</h1>
+<p>
+  How each compute operation maps to the benchmark that prices it. For every preset in
+  <a href="https://github.com/misilva73/evm-gasfit">evm-gasfit</a> declared in
+  <code>fit.yaml</code>: the target opcode, the EEST <strong>test</strong> that stresses it,
+  the fixture <strong>parameters</strong> the model varies over, the fixture filter applied,
+  and the gas parameter(s) the fit produces. Precompiles are invoked behind a call, so their
+  count is read from the wrapping <code>STATICCALL</code>.
+</p>
+
+<div class="filters">
+  <label>Category
+    <select data-filter="category">
+      <option value="all">All</option>
+<option value="Arithmetic">Arithmetic</option><option value="BLS12-381">BLS12-381</option><option value="Bitwise">Bitwise</option><option value="Block/tx">Block/tx</option><option value="Call context">Call context</option><option value="Comparison">Comparison</option><option value="Control flow">Control flow</option><option value="Hashing">Hashing</option><option value="Memory">Memory</option><option value="Precompile">Precompile</option><option value="Stack">Stack</option>    </select>
+  </label>
+  <span id="result-count"></span>
+</div>
+
+<table id="reference-table">
+  <thead>
+    <tr>
+      <th data-sort="target_op">Target op</th>
+      <th data-sort="category">Category</th>
+      <th data-sort="test_name">Test</th>
+      <th>Fixture params</th>
+      <th>Fixture filter</th>
+      <th>Gas params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr data-category="Arithmetic" data-target_op="ADD"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>ADD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_ADD-</code></td>
+      <td><code>OPCODE_ADD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="ADDMOD"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>ADDMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_ADDMOD</code></td>
+      <td><code>OPCODE_ADDMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="ADDMOD"
+        data-test_name="test_mod_arithmetic">
+      <td class="opcode"><code>ADDMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_mod_arithmetic</code></td>
+      <td><code>mod_bits</code></td>
+      <td><code>opcode_ADDMOD</code></td>
+      <td><code>OPCODE_ADDMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="DIV"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>DIV</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_DIV</code></td>
+      <td><code>OPCODE_DIV</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="EXP"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>EXP</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_EXP</code></td>
+      <td><code>OPCODE_EXP_BASE</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="MOD"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>MOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_MOD</code></td>
+      <td><code>OPCODE_MOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="MOD"
+        data-test_name="test_mod">
+      <td class="opcode"><code>MOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_mod</code></td>
+      <td><code>mod_bits</code></td>
+      <td><code>opcode_MOD</code></td>
+      <td><code>OPCODE_MOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="MUL"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>MUL</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_MUL-</code></td>
+      <td><code>OPCODE_MUL</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="MULMOD"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>MULMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_MULMOD</code></td>
+      <td><code>OPCODE_MULMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="MULMOD"
+        data-test_name="test_mod_arithmetic">
+      <td class="opcode"><code>MULMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_mod_arithmetic</code></td>
+      <td><code>mod_bits</code></td>
+      <td><code>opcode_MULMOD</code></td>
+      <td><code>OPCODE_MULMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="SDIV"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>SDIV</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_SDIV</code></td>
+      <td><code>OPCODE_SDIV</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="SIGNEXTEND"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>SIGNEXTEND</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_SIGNEXTEND</code></td>
+      <td><code>OPCODE_SIGNEXTEND</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="SMOD"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>SMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_SMOD</code></td>
+      <td><code>OPCODE_SMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="SMOD"
+        data-test_name="test_mod">
+      <td class="opcode"><code>SMOD</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_mod</code></td>
+      <td><code>mod_bits</code></td>
+      <td><code>opcode_SMOD</code></td>
+      <td><code>OPCODE_SMOD</code></td>
+    </tr>
+    <tr data-category="Arithmetic" data-target_op="SUB"
+        data-test_name="test_arithmetic">
+      <td class="opcode"><code>SUB</code></td>
+      <td>Arithmetic</td>
+      <td><code>test_arithmetic</code></td>
+      <td>—</td>
+      <td><code>opcode_SUB</code></td>
+      <td><code>OPCODE_SUB</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_G1ADD"
+        data-test_name="test_bls12_381">
+      <td class="opcode"><code>BLS12_G1ADD</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_381</code></td>
+      <td>—</td>
+      <td><code>bls12_g1add</code></td>
+      <td><code>PRECOMPILE_BLS_G1ADD</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_G1MSM"
+        data-test_name="test_bls12_g1_msm">
+      <td class="opcode"><code>BLS12_G1MSM</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_g1_msm</code></td>
+      <td><code>k</code></td>
+      <td><code>bls12_g1msm</code></td>
+      <td><code>PRECOMPILE_BLS_G1MUL</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_G2ADD"
+        data-test_name="test_bls12_381">
+      <td class="opcode"><code>BLS12_G2ADD</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_381</code></td>
+      <td>—</td>
+      <td><code>bls12_g2add</code></td>
+      <td><code>PRECOMPILE_BLS_G2ADD</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_G2MSM"
+        data-test_name="test_bls12_g2_msm">
+      <td class="opcode"><code>BLS12_G2MSM</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_g2_msm</code></td>
+      <td><code>k</code></td>
+      <td><code>bls12_g2msm</code></td>
+      <td><code>PRECOMPILE_BLS_G2MUL</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_MAP_FP_TO_G1"
+        data-test_name="test_bls12_381">
+      <td class="opcode"><code>BLS12_MAP_FP_TO_G1</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_381</code></td>
+      <td>—</td>
+      <td><code>bls12_fp_to_g1</code></td>
+      <td><code>PRECOMPILE_BLS_G1MAP</code></td>
+    </tr>
+    <tr data-category="BLS12-381" data-target_op="BLS12_MAP_FP_TO_G2"
+        data-test_name="test_bls12_381">
+      <td class="opcode"><code>BLS12_MAP_FP_TO_G2</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>BLS12-381</td>
+      <td><code>test_bls12_381</code></td>
+      <td>—</td>
+      <td><code>bls12_fp_to_g2</code></td>
+      <td><code>PRECOMPILE_BLS_G2MAP</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="AND"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>AND</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_AND</code></td>
+      <td><code>OPCODE_AND</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="BYTE"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>BYTE</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_BYTE</code></td>
+      <td><code>OPCODE_BYTE</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="CLZ"
+        data-test_name="test_clz_same">
+      <td class="opcode"><code>CLZ</code></td>
+      <td>Bitwise</td>
+      <td><code>test_clz_same</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_CLZ</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="NOT"
+        data-test_name="test_not_op">
+      <td class="opcode"><code>NOT</code></td>
+      <td>Bitwise</td>
+      <td><code>test_not_op</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_NOT</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="OR"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>OR</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_OR</code></td>
+      <td><code>OPCODE_OR</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="SAR"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>SAR</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_SAR</code></td>
+      <td><code>OPCODE_SAR</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="SHL"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>SHL</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_SHL</code></td>
+      <td><code>OPCODE_SHL</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="SHR"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>SHR</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_SHR</code></td>
+      <td><code>OPCODE_SHR</code></td>
+    </tr>
+    <tr data-category="Bitwise" data-target_op="XOR"
+        data-test_name="test_bitwise">
+      <td class="opcode"><code>XOR</code></td>
+      <td>Bitwise</td>
+      <td><code>test_bitwise</code></td>
+      <td>—</td>
+      <td><code>opcode_XOR</code></td>
+      <td><code>OPCODE_XOR</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="BASEFEE"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>BASEFEE</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_BASEFEE</code></td>
+      <td><code>OPCODE_BASEFEE</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="BLOBBASEFEE"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>BLOBBASEFEE</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_BLOBBASEFEE</code></td>
+      <td><code>OPCODE_BLOBBASEFEE</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="CHAINID"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>CHAINID</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_CHAINID</code></td>
+      <td><code>OPCODE_CHAINID</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="COINBASE"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>COINBASE</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_COINBASE</code></td>
+      <td><code>OPCODE_COINBASE</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="GASLIMIT"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>GASLIMIT</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_GASLIMIT</code></td>
+      <td><code>OPCODE_GASLIMIT</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="GASPRICE"
+        data-test_name="test_call_frame_context_ops">
+      <td class="opcode"><code>GASPRICE</code></td>
+      <td>Block/tx</td>
+      <td><code>test_call_frame_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_GASPRICE</code></td>
+      <td><code>OPCODE_GASPRICE</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="NUMBER"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>NUMBER</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_NUMBER</code></td>
+      <td><code>OPCODE_NUMBER</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="ORIGIN"
+        data-test_name="test_call_frame_context_ops">
+      <td class="opcode"><code>ORIGIN</code></td>
+      <td>Block/tx</td>
+      <td><code>test_call_frame_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_ORIGIN</code></td>
+      <td><code>OPCODE_ORIGIN</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="PREVRANDAO"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>PREVRANDAO</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_PREVRANDAO</code></td>
+      <td><code>OPCODE_PREVRANDAO</code></td>
+    </tr>
+    <tr data-category="Block/tx" data-target_op="TIMESTAMP"
+        data-test_name="test_block_context_ops">
+      <td class="opcode"><code>TIMESTAMP</code></td>
+      <td>Block/tx</td>
+      <td><code>test_block_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_TIMESTAMP</code></td>
+      <td><code>OPCODE_TIMESTAMP</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="ADDRESS"
+        data-test_name="test_call_frame_context_ops">
+      <td class="opcode"><code>ADDRESS</code></td>
+      <td>Call context</td>
+      <td><code>test_call_frame_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_ADDRESS</code></td>
+      <td><code>OPCODE_ADDRESS</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="CALLDATACOPY"
+        data-test_name="test_calldatacopy_from_origin">
+      <td class="opcode"><code>CALLDATACOPY</code></td>
+      <td>Call context</td>
+      <td><code>test_calldatacopy_from_origin</code></td>
+      <td><code>calldata_size, mem_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_CALLDATACOPY_BASE</code> <code>OPCODE_CALLDATACOPY_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="CALLDATALOAD"
+        data-test_name="test_calldataload">
+      <td class="opcode"><code>CALLDATALOAD</code></td>
+      <td>Call context</td>
+      <td><code>test_calldataload</code></td>
+      <td><code>calldata_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_CALLDATALOAD</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="CALLDATASIZE"
+        data-test_name="test_calldatasize">
+      <td class="opcode"><code>CALLDATASIZE</code></td>
+      <td>Call context</td>
+      <td><code>test_calldatasize</code></td>
+      <td><code>calldata_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_CALLDATASIZE</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="CALLER"
+        data-test_name="test_call_frame_context_ops">
+      <td class="opcode"><code>CALLER</code></td>
+      <td>Call context</td>
+      <td><code>test_call_frame_context_ops</code></td>
+      <td>—</td>
+      <td><code>opcode_CALLER</code></td>
+      <td><code>OPCODE_CALLER</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="CALLVALUE"
+        data-test_name="test_callvalue_from_origin">
+      <td class="opcode"><code>CALLVALUE</code></td>
+      <td>Call context</td>
+      <td><code>test_callvalue_from_origin</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_CALLVALUE</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="RETURNDATACOPY"
+        data-test_name="test_returndatacopy">
+      <td class="opcode"><code>RETURNDATACOPY</code></td>
+      <td>Call context</td>
+      <td><code>test_returndatacopy</code></td>
+      <td><code>return_size, mem_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_RETURNDATACOPY_BASE</code> <code>OPCODE_RETURNDATACOPY_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Call context" data-target_op="RETURNDATASIZE"
+        data-test_name="test_returndatasize_nonzero">
+      <td class="opcode"><code>RETURNDATASIZE</code></td>
+      <td>Call context</td>
+      <td><code>test_returndatasize_nonzero</code></td>
+      <td><code>returned_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_RETURNDATASIZE</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="EQ"
+        data-test_name="test_comparison">
+      <td class="opcode"><code>EQ</code></td>
+      <td>Comparison</td>
+      <td><code>test_comparison</code></td>
+      <td>—</td>
+      <td><code>opcode_EQ</code></td>
+      <td><code>OPCODE_EQ</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="GT"
+        data-test_name="test_comparison">
+      <td class="opcode"><code>GT</code></td>
+      <td>Comparison</td>
+      <td><code>test_comparison</code></td>
+      <td>—</td>
+      <td><code>opcode_GT</code></td>
+      <td><code>OPCODE_GT</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="ISZERO"
+        data-test_name="test_iszero">
+      <td class="opcode"><code>ISZERO</code></td>
+      <td>Comparison</td>
+      <td><code>test_iszero</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_ISZERO</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="LT"
+        data-test_name="test_comparison">
+      <td class="opcode"><code>LT</code></td>
+      <td>Comparison</td>
+      <td><code>test_comparison</code></td>
+      <td>—</td>
+      <td><code>opcode_LT</code></td>
+      <td><code>OPCODE_LT</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="SGT"
+        data-test_name="test_comparison">
+      <td class="opcode"><code>SGT</code></td>
+      <td>Comparison</td>
+      <td><code>test_comparison</code></td>
+      <td>—</td>
+      <td><code>opcode_SGT</code></td>
+      <td><code>OPCODE_SGT</code></td>
+    </tr>
+    <tr data-category="Comparison" data-target_op="SLT"
+        data-test_name="test_comparison">
+      <td class="opcode"><code>SLT</code></td>
+      <td>Comparison</td>
+      <td><code>test_comparison</code></td>
+      <td>—</td>
+      <td><code>opcode_SLT</code></td>
+      <td><code>OPCODE_SLT</code></td>
+    </tr>
+    <tr data-category="Control flow" data-target_op="GAS"
+        data-test_name="test_gas_op">
+      <td class="opcode"><code>GAS</code></td>
+      <td>Control flow</td>
+      <td><code>test_gas_op</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_GAS</code></td>
+    </tr>
+    <tr data-category="Control flow" data-target_op="JUMP"
+        data-test_name="test_jump_benchmark">
+      <td class="opcode"><code>JUMP</code></td>
+      <td>Control flow</td>
+      <td><code>test_jump_benchmark</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_JUMP</code></td>
+    </tr>
+    <tr data-category="Control flow" data-target_op="JUMPDEST"
+        data-test_name="test_jumpdests">
+      <td class="opcode"><code>JUMPDEST</code></td>
+      <td>Control flow</td>
+      <td><code>test_jumpdests</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_JUMPDEST</code></td>
+    </tr>
+    <tr data-category="Control flow" data-target_op="JUMPI"
+        data-test_name="test_jumpi_fallthrough">
+      <td class="opcode"><code>JUMPI</code></td>
+      <td>Control flow</td>
+      <td><code>test_jumpi_fallthrough</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_JUMPI</code></td>
+    </tr>
+    <tr data-category="Control flow" data-target_op="PC"
+        data-test_name="test_pc_op">
+      <td class="opcode"><code>PC</code></td>
+      <td>Control flow</td>
+      <td><code>test_pc_op</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_PC</code></td>
+    </tr>
+    <tr data-category="Hashing" data-target_op="KECCAK256"
+        data-test_name="test_keccak_diff_mem_msg_sizes">
+      <td class="opcode"><code>KECCAK256</code></td>
+      <td>Hashing</td>
+      <td><code>test_keccak_diff_mem_msg_sizes</code></td>
+      <td><code>mem_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_KECCAK256_BASE</code> <code>OPCODE_KECCAK256_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Memory" data-target_op="MCOPY"
+        data-test_name="test_mcopy">
+      <td class="opcode"><code>MCOPY</code></td>
+      <td>Memory</td>
+      <td><code>test_mcopy</code></td>
+      <td><code>copy_size, mem_size</code></td>
+      <td>—</td>
+      <td><code>OPCODE_MCOPY_BASE</code> <code>OPCODE_MCOPY_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Memory" data-target_op="MLOAD"
+        data-test_name="test_memory_access">
+      <td class="opcode"><code>MLOAD</code></td>
+      <td>Memory</td>
+      <td><code>test_memory_access</code></td>
+      <td><code>mem_size</code></td>
+      <td><code>opcode_MLOAD</code></td>
+      <td><code>OPCODE_MLOAD_BASE</code></td>
+    </tr>
+    <tr data-category="Memory" data-target_op="MSIZE"
+        data-test_name="test_msize">
+      <td class="opcode"><code>MSIZE</code></td>
+      <td>Memory</td>
+      <td><code>test_msize</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>OPCODE_MSIZE</code></td>
+    </tr>
+    <tr data-category="Memory" data-target_op="MSTORE"
+        data-test_name="test_memory_access">
+      <td class="opcode"><code>MSTORE</code></td>
+      <td>Memory</td>
+      <td><code>test_memory_access</code></td>
+      <td><code>mem_size</code></td>
+      <td><code>opcode_MSTORE-</code></td>
+      <td><code>OPCODE_MSTORE_BASE</code></td>
+    </tr>
+    <tr data-category="Memory" data-target_op="MSTORE8"
+        data-test_name="test_memory_access">
+      <td class="opcode"><code>MSTORE8</code></td>
+      <td>Memory</td>
+      <td><code>test_memory_access</code></td>
+      <td><code>mem_size</code></td>
+      <td><code>opcode_MSTORE8</code></td>
+      <td><code>OPCODE_MSTORE8_BASE</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="BLAKE2F"
+        data-test_name="test_blake2f_benchmark">
+      <td class="opcode"><code>BLAKE2F</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_blake2f_benchmark</code></td>
+      <td>—</td>
+      <td><code>blake2f</code></td>
+      <td><code>PRECOMPILE_BLAKE2F_BASE</code> <code>PRECOMPILE_BLAKE2F_PER_ROUND</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="BLAKE2F"
+        data-test_name="test_blake2f_uncachable">
+      <td class="opcode"><code>BLAKE2F</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_blake2f_uncachable</code></td>
+      <td>—</td>
+      <td><code>blake2f</code></td>
+      <td><code>PRECOMPILE_BLAKE2F_BASE</code> <code>PRECOMPILE_BLAKE2F_PER_ROUND</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECADD"
+        data-test_name="test_alt_bn128">
+      <td class="opcode"><code>ECADD</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_alt_bn128</code></td>
+      <td><code>bn128</code></td>
+      <td><code>bn128_, !bn128_mul</code></td>
+      <td><code>PRECOMPILE_ECADD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECADD"
+        data-test_name="test_alt_bn128_uncachable">
+      <td class="opcode"><code>ECADD</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_alt_bn128_uncachable</code></td>
+      <td>—</td>
+      <td><code>ec_add</code></td>
+      <td><code>PRECOMPILE_ECADD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECMUL"
+        data-test_name="test_alt_bn128">
+      <td class="opcode"><code>ECMUL</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_alt_bn128</code></td>
+      <td>—</td>
+      <td><code>bn128_mul_</code></td>
+      <td><code>PRECOMPILE_ECMUL</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECMUL"
+        data-test_name="test_alt_bn128_uncachable">
+      <td class="opcode"><code>ECMUL</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_alt_bn128_uncachable</code></td>
+      <td>—</td>
+      <td><code>ec_mul_</code></td>
+      <td><code>PRECOMPILE_ECMUL</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECPAIRING"
+        data-test_name="test_alt_bn128_benchmark">
+      <td class="opcode"><code>ECPAIRING</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_alt_bn128_benchmark</code></td>
+      <td>—</td>
+      <td><code>num_pairs</code></td>
+      <td><code>PRECOMPILE_ECPAIRING_BASE</code> <code>PRECOMPILE_ECPAIRING_PER_POINT</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECPAIRING"
+        data-test_name="test_ec_pairing">
+      <td class="opcode"><code>ECPAIRING</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_ec_pairing</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td><code>PRECOMPILE_ECPAIRING_BASE</code> <code>PRECOMPILE_ECPAIRING_PER_POINT</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="ECRECOVER"
+        data-test_name="test_ecrecover">
+      <td class="opcode"><code>ECRECOVER</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_ecrecover</code></td>
+      <td>—</td>
+      <td><code>ecrecover</code></td>
+      <td><code>PRECOMPILE_ECRECOVER</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="IDENTITY"
+        data-test_name="test_identity_fixed_size">
+      <td class="opcode"><code>IDENTITY</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_identity_fixed_size</code></td>
+      <td>—</td>
+      <td><code>identity</code></td>
+      <td><code>PRECOMPILE_IDENTITY_BASE</code> <code>PRECOMPILE_IDENTITY_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="IDENTITY"
+        data-test_name="test_identity_uncachable">
+      <td class="opcode"><code>IDENTITY</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_identity_uncachable</code></td>
+      <td>—</td>
+      <td><code>identity</code></td>
+      <td><code>PRECOMPILE_IDENTITY_BASE</code> <code>PRECOMPILE_IDENTITY_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="P256VERIFY"
+        data-test_name="test_p256verify">
+      <td class="opcode"><code>P256VERIFY</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_p256verify</code></td>
+      <td>—</td>
+      <td><code>p256verify</code></td>
+      <td><code>PRECOMPILE_P256VERIFY</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="P256VERIFY"
+        data-test_name="test_p256verify_uncachable">
+      <td class="opcode"><code>P256VERIFY</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_p256verify_uncachable</code></td>
+      <td>—</td>
+      <td><code>p256verify</code></td>
+      <td><code>PRECOMPILE_P256VERIFY</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="POINT_EVALUATION"
+        data-test_name="test_point_evaluation">
+      <td class="opcode"><code>POINT_EVALUATION</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_point_evaluation</code></td>
+      <td>—</td>
+      <td><code>point_evaluation</code></td>
+      <td><code>PRECOMPILE_POINT_EVALUATION</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="POINT_EVALUATION"
+        data-test_name="test_point_evaluation_uncachable">
+      <td class="opcode"><code>POINT_EVALUATION</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_point_evaluation_uncachable</code></td>
+      <td>—</td>
+      <td><code>point_evaluation</code></td>
+      <td><code>PRECOMPILE_POINT_EVALUATION</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="RIPEMD160"
+        data-test_name="test_ripemd160_fixed_size">
+      <td class="opcode"><code>RIPEMD160</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_ripemd160_fixed_size</code></td>
+      <td>—</td>
+      <td><code>ripemd160</code></td>
+      <td><code>PRECOMPILE_RIPEMD160_BASE</code> <code>PRECOMPILE_RIPEMD160_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="RIPEMD160"
+        data-test_name="test_ripemd160_uncachable">
+      <td class="opcode"><code>RIPEMD160</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_ripemd160_uncachable</code></td>
+      <td>—</td>
+      <td><code>ripemd160</code></td>
+      <td><code>PRECOMPILE_RIPEMD160_BASE</code> <code>PRECOMPILE_RIPEMD160_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="SHA256"
+        data-test_name="test_sha256_fixed_size">
+      <td class="opcode"><code>SHA256</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_sha256_fixed_size</code></td>
+      <td>—</td>
+      <td><code>sha256</code></td>
+      <td><code>PRECOMPILE_SHA256_BASE</code> <code>PRECOMPILE_SHA256_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Precompile" data-target_op="SHA256"
+        data-test_name="test_sha256_uncachable">
+      <td class="opcode"><code>SHA256</code> <span class="muted-inline">via STATICCALL</span></td>
+      <td>Precompile</td>
+      <td><code>test_sha256_uncachable</code></td>
+      <td>—</td>
+      <td><code>sha256</code></td>
+      <td><code>PRECOMPILE_SHA256_BASE</code> <code>PRECOMPILE_SHA256_PER_WORD</code></td>
+    </tr>
+    <tr data-category="Stack" data-target_op="DUP* (per opcode)"
+        data-test_name="test_dup">
+      <td class="opcode"><code>DUP* (per opcode)</code></td>
+      <td>Stack</td>
+      <td><code>test_dup</code></td>
+      <td><code>opcode</code></td>
+      <td>—</td>
+      <td><code>OPCODE_DUP</code></td>
+    </tr>
+    <tr data-category="Stack" data-target_op="PUSH* (per opcode)"
+        data-test_name="test_push">
+      <td class="opcode"><code>PUSH* (per opcode)</code></td>
+      <td>Stack</td>
+      <td><code>test_push</code></td>
+      <td><code>opcode</code></td>
+      <td><code>opcode_PUSH</code></td>
+      <td><code>OPCODE_PUSH</code></td>
+    </tr>
+    <tr data-category="Stack" data-target_op="PUSH0"
+        data-test_name="test_push">
+      <td class="opcode"><code>PUSH0</code></td>
+      <td>Stack</td>
+      <td><code>test_push</code></td>
+      <td>—</td>
+      <td><code>opcode_PUSH0-</code></td>
+      <td><code>OPCODE_PUSH0</code></td>
+    </tr>
+    <tr data-category="Stack" data-target_op="SWAP* (per opcode)"
+        data-test_name="test_swap">
+      <td class="opcode"><code>SWAP* (per opcode)</code></td>
+      <td>Stack</td>
+      <td><code>test_swap</code></td>
+      <td><code>opcode</code></td>
+      <td>—</td>
+      <td><code>OPCODE_SWAP</code></td>
+    </tr>
+  </tbody>
+</table>
+  </main>
+
+  <footer class="site-footer">
+    <p class="repro">
+      Suites
+<code>3182dda7b93dee61</code>, <code>a11611f320a39015</code>      · run 2026-06-10T11:48:58Z
+      · evm-gasfit 0.0.4
+      · benchmarkoor-fetch 0.3.0
+      · commit <code>1f87b93</code>
+    </p>
+  </footer>
+<script src="reference_filter.js"></script>
+</body>
+</html>

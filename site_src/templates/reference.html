@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Test reference — Compute{% endblock %}
+{% block content %}
+<h1>Test reference: operation &harr; benchmark</h1>
+<p>
+  How each compute operation maps to the benchmark that prices it. For every preset in
+  <a href="https://github.com/misilva73/evm-gasfit">evm-gasfit</a> declared in
+  <code>fit.yaml</code>: the target opcode, the EEST <strong>test</strong> that stresses it,
+  the fixture <strong>parameters</strong> the model varies over, the fixture filter applied,
+  and the gas parameter(s) the fit produces. Precompiles are invoked behind a call, so their
+  count is read from the wrapping <code>STATICCALL</code>.
+</p>
+
+<div class="filters">
+  <label>Category
+    <select data-filter="category">
+      <option value="all">All</option>
+      {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <span id="result-count"></span>
+</div>
+
+<table id="reference-table">
+  <thead>
+    <tr>
+      <th data-sort="target_op">Target op</th>
+      <th data-sort="category">Category</th>
+      <th data-sort="test_name">Test</th>
+      <th>Fixture params</th>
+      <th>Fixture filter</th>
+      <th>Gas params</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr data-category="{{ r.category }}" data-target_op="{{ r.target_op }}"
+        data-test_name="{{ r.test_name }}">
+      <td class="opcode"><code>{{ r.target_op }}</code>{% if r.count_source %} <span class="muted-inline">via {{ r.count_source }}</span>{% endif %}</td>
+      <td>{{ r.category }}</td>
+      <td><code>{{ r.test_name }}</code></td>
+      <td>{% if r.fixture_params %}<code>{{ r.fixture_params }}</code>{% else %}—{% endif %}</td>
+      <td>{% if r.fixture_filter %}<code>{{ r.fixture_filter }}</code>{% else %}—{% endif %}</td>
+      <td>{% for p in r.gas_params.split(', ') %}<code>{{ p }}</code>{% if not loop.last %} {% endif %}{% endfor %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="reference_filter.js"></script>
+{% endblock %}

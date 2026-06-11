@@ -1,0 +1,12 @@
+query:
+  fork: amsterdam
+  run_id_pattern: '.*-full.*'
+  start_date: 2026-06-03
+  end_date: 2026-06-10
+  # Pull both per-fixture wall-clock runtimes (for evm-gasfit) and throughput
+  # (test_mgas_s, for the Bottleneck section). Without `mgas_s` here, neither
+  # mgas_s.csv nor the test_mgas_s column in bench_data.parquet is written.
+  metrics: [runtime, mgas_s]
+  suites:
+    - 3182dda7b93dee61 # jochennet compute
+    - a11611f320a39015 # jochennet stateful

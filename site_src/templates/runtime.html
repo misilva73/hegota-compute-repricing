@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Runtime Model — EIP-7904{% endblock %}
+{% block content %}
+<h1>Runtime model results</h1>
+<p>
+  Per-spec NNLS fits of test runtime against opcode count — one block per
+  (target opcode, test, model combo, client). Use the filters to narrow to a
+  single opcode or client.
+</p>
+
+<div class="filters">
+  <label>Opcode
+    <select data-filter="opcode">
+      <option value="all">All</option>
+      {% for o in opcodes %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Client
+    <select data-filter="client">
+      <option value="all">All</option>
+      {% for c in clients %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <span id="result-count"></span>
+</div>
+
+{% for s in sections %}
+<section class="fit-section" data-opcode="{{ s.opcode }}" data-client="{{ s.client }}">
+  <h3>{{ s.opcode }} · {{ s.test }}{% if s.combo != 'all' %} · combo <code>{{ s.combo }}</code>{% endif %} · {{ s.client }}</h3>
+  {% if s.nobs is defined %}
+  <div class="stat-grid">
+    <span class="stat">nobs <strong>{{ s.nobs }}</strong></span>
+    <span class="stat">R² <strong>{{ s.rsquared }}</strong></span>
+    <span class="stat">coef (ms) <strong>{{ s.coef }}</strong></span>
+    <span class="stat">p-value <strong>{{ s.pvalue }}</strong></span>
+    <span class="stat">95% CI <strong>{{ s.ci }}</strong></span>
+  </div>
+  {% endif %}
+  <details>
+    <summary>NNLS regression summary</summary>
+    <pre><code>{{ s.nnls }}</code></pre>
+    <div class="plot-grid">
+      {% for f in s.figs %}
+      <figure><a href="{{ f }}"><img src="{{ f }}" loading="lazy" alt=""></a>
+        <figcaption>{{ f.rsplit('__', 1)[-1][:-4] }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </details>
+</section>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script src="runtime_filter.js"></script>
+{% endblock %}

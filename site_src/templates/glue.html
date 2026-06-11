@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Glue Runtime — EIP-7904{% endblock %}
+{% block content %}
+<h1>Glue-opcode runtime results</h1>
+<p>
+  Per-client NNLS fits for the priced glue opcodes. A target opcode's coefficient is
+  netted against the runtime of these glue opcodes before its gas cost is derived.
+  Headline stats are per (client, glue opcode); the joint and tier-level regression
+  summaries are collected in the appendix at the bottom.
+</p>
+
+<div class="filters">
+  <label>Client
+    <select data-filter="client">
+      <option value="all">All</option>
+      {% for c in clients %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Glue opcode
+    <select data-filter="glue-opcode">
+      <option value="all">All</option>
+      {% for o in glue_opcodes %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+    </select>
+  </label>
+  <span id="result-count"></span>
+</div>
+
+{% for s in sections %}
+<section class="fit-section" data-client="{{ s.client }}" data-glue-opcode="{{ s.glue_opcode }}">
+  <h3>{{ s.glue_opcode }} · {{ s.client }}</h3>
+  <div class="stat-grid">
+    <span class="stat">nobs <strong>{{ s.nobs }}</strong></span>
+    <span class="stat">glue runtime (ms) <strong>{{ s.glue_runtime_ms | sci }}</strong></span>
+    <span class="stat">p-value <strong>{{ s.p_value | sci }}</strong></span>
+    <span class="stat">R² <strong>{{ s.rsquared | g4 }}</strong></span>
+  </div>
+  {% if s.figs %}
+  <div class="plot-grid">
+    {% for f in s.figs %}
+    <figure><a href="{{ f }}"><img src="{{ f }}" loading="lazy" alt=""></a>
+      <figcaption>{{ f.rsplit('__', 1)[-1][:-4] }}</figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if appendix %}
+<h2>Per-client regression summaries</h2>
+<p>Joint (cycle-tier) and single-feature (pure/mixed-tier) NNLS fits, grouped by client.</p>
+{% for group in appendix %}
+<details>
+  <summary>{{ group.client }} — {{ group.fits | length }} regression summaries</summary>
+  {% for fit in group.fits %}
+  <h4>{{ fit.heading }}</h4>
+  <pre><code>{{ fit.nnls }}</code></pre>
+  {% endfor %}
+</details>
+{% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="runtime_filter.js"></script>
+{% endblock %}

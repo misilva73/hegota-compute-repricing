@@ -1,0 +1,154 @@
+version: 1
+
+# Throughput anchor (gas/s). This is the *baseline* the build bakes in and the
+# initial position of the slider on the Repricing page — the UI lets you rescale
+# every proposed cost live in the browser. 100 Mgas/s — the assumed eth-transfer
+# throughput ceiling (operations below it are bottlenecks; see the Bottleneck page).
+anchor_rate: 100000000
+
+# Every client here is fitted and shown on the runtime/glue pages. ethrex is
+# additionally listed but EXCLUDED from worst-case selection (the proposal is
+# built from the other clients only — see scripts/run_gasfit.py's
+# WORST_CASE_EXCLUDE, which is why `make gasfit` runs that wrapper, not the
+# evm-gasfit CLI). The bottleneck side mirrors this (build_bottlenecks.py).
+clients:
+  - besu
+  - erigon
+  - ethrex
+  - geth
+  - nethermind
+  - reth
+
+gas_costs:
+  fork: osaka
+
+output:
+  plots: true
+
+glue_adjustment:
+  enabled: true
+
+# Per-word copy costs the presets name individually but the osaka table folds
+# into the shared OPCODE_COPY_PER_WORD (= 3). Declare them with that baseline so
+# the proposal diffs against the real protocol cost.
+new_params:
+  OPCODE_CALLDATACOPY_PER_WORD: 3
+  OPCODE_MCOPY_PER_WORD: 3
+
+# All compute operations: compute-bound opcodes + every precompile + memory +
+# context (block/tx + call). Excludes the state/IO-bound families
+# (warm_/cold_/account_/storage_t* and system_create).
+models:
+  presets:
+    # --- Arithmetic (15) ---
+    - arithmetic_add
+    - arithmetic_sub
+    - arithmetic_mul
+    - arithmetic_div
+    - arithmetic_sdiv
+    - arithmetic_signextend
+    - arithmetic_exp
+    - arithmetic_mod
+    - arithmetic_mod_bits
+    - arithmetic_smod
+    - arithmetic_smod_bits
+    - arithmetic_addmod
+    - arithmetic_addmod_bits
+    - arithmetic_mulmod
+    - arithmetic_mulmod_bits
+
+    # --- Bitwise (9) ---
+    - bitwise_and
+    - bitwise_or
+    - bitwise_xor
+    - bitwise_byte
+    - bitwise_shl
+    - bitwise_shr
+    - bitwise_sar
+    - bitwise_not
+    - bitwise_clz
+
+    # --- Comparison (6) ---
+    - comparison_lt
+    - comparison_gt
+    - comparison_slt
+    - comparison_sgt
+    - comparison_eq
+    - comparison_iszero
+
+    # --- Stack (4) ---
+    - stack_push0
+    - stack_push
+    - stack_dup
+    - stack_swap
+
+    # --- Control flow (5) ---
+    - control_flow_jump
+    - control_flow_jumpi
+    - control_flow_jumpdest
+    - control_flow_pc
+    - control_flow_gas
+
+    # --- Block & transaction context (10) ---
+    # block_blockhash excluded: BLOCKHASH reads the historical block-hash buffer
+    # (chain-history/state access, not pure compute), and its test fixtures carry
+    # null `block` values that break grouping.
+    - block_basefee
+    - block_blobbasefee
+    - block_chainid
+    - block_coinbase
+    - block_gaslimit
+    - block_number
+    - block_prevrandao
+    - block_timestamp
+    - tx_gasprice
+    - tx_origin
+
+    # --- Call context (8) ---
+    - call_address
+    - call_caller
+    - call_callvalue
+    - call_calldataload
+    - call_calldatasize
+    - call_returndatasize
+    - call_calldatacopy
+    - call_returndatacopy
+
+    # --- Memory (5) ---
+    - memory_mload
+    - memory_mstore
+    - memory_mstore8
+    - memory_msize
+    - memory_mcopy
+
+    # --- Hashing (1) ---
+    - keccak
+
+    # --- Precompiles (19) ---
+    - precompile_ecrecover
+    - precompile_sha256_fixed
+    - precompile_sha256_uncachable
+    - precompile_ripemd160_fixed
+    - precompile_ripemd160_uncachable
+    - precompile_identity_fixed
+    - precompile_identity_uncachable
+    - precompile_blake2f
+    - precompile_blake2f_uncachable
+    - precompile_p256verify
+    - precompile_p256verify_uncachable
+    - precompile_point_evaluation
+    - precompile_point_evaluation_uncachable
+    - precompile_bn128_add
+    - precompile_bn128_mul
+    - precompile_bn128_add_uncachable
+    - precompile_bn128_mul_uncachable
+    - precompile_bn128_pairing
+    - precompile_bn128_pairing_alt
+
+    # --- BLS12-381 precompiles (6) ---
+    - precompile_bls_g1add
+    - precompile_bls_g2add
+    - precompile_bls_fp_to_g1
+    - precompile_bls_fp_to_g2
+    - precompile_bls_g1msm
+    - precompile_bls_g2msm

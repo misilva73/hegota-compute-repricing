@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repricing — Compute</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-repricing">
+  <header class="site-header">
+    <div class="topbar-primary">
+      <a class="site-title" href="index.html">Compute Repricing</a>
+      <nav class="site-nav">
+        <a href="index.html">Overview</a>
+        <a href="bottleneck.html">Bottlenecks</a>
+        <a href="repricing.html" class="active">Repricing</a>
+      </nav>
+    </div>
+    <nav class="topbar-secondary">
+      <a href="repricing.html" class="active">Repricing table</a>
+      <a href="fracgas.html">Throughput loss</a>
+      <a href="runtime.html">Runtime model</a>
+      <a href="glue.html">Glue runtime</a>
+      <a href="reference.html">Test reference</a>
+      <a href="methodology.html">Repricing Methodology</a>
+    </nav>
+  </header>
+
+  <main class="content">
+<h1>Compute repricing</h1>
+<p>
+  Of the operations that keep up with the anchor (the
+  <a href="bottleneck.html">bottlenecks</a> are excluded), which should become
+  <strong>cheaper</strong>, and by how much? Each row is one fitted gas parameter.
+  <strong>Proposed gas</strong> is recomputed live as
+  <code>ceil(anchor &times; runtime / 1s)</code> from the worst-case client's measured runtime —
+  the exact formula the estimation uses, rescaled to whatever anchor you pick below. Increases
+  are shown in red and decreases in green; tick the box to see only the ones that get
+  cheaper.
+</p>
+
+<div class="anchor-panel">
+  <div class="anchor-control">
+    <label for="anchor-num"><strong>Throughput anchor</strong></label>
+    <div class="anchor-inputs">
+      <input type="range" id="anchor-range" min="10" max="1000" step="5"
+             value="100">
+      <input type="number" id="anchor-num" min="1" max="100000" step="1"
+             value="100">
+      <span class="anchor-unit">Mgas/s</span>
+    </div>
+  </div>
+  <p class="anchor-summary" id="summary"></p>
+</div>
+
+<div class="filters">
+  <label>Category
+    <select data-filter="category">
+      <option value="all">All</option>
+<option value="Arithmetic">Arithmetic</option><option value="Bitwise">Bitwise</option><option value="Block/tx">Block/tx</option><option value="BLS12-381">BLS12-381</option><option value="Call context">Call context</option><option value="Comparison">Comparison</option><option value="Control flow">Control flow</option><option value="Hashing">Hashing</option><option value="Memory">Memory</option><option value="Precompile">Precompile</option><option value="Stack">Stack</option>    </select>
+  </label>
+  <label>Worst-case client
+    <select data-filter="client">
+      <option value="all">All</option>
+<option value="besu">besu</option><option value="erigon">erigon</option><option value="geth">geth</option><option value="nethermind">nethermind</option><option value="reth">reth</option>    </select>
+  </label>
+  <label class="checkbox"><input type="checkbox" id="only-increases"> Only ops needing an increase</label>
+  <label class="checkbox"><input type="checkbox" id="only-decreases"> Only ops that get cheaper</label>
+  <span id="result-count"></span>
+</div>
+
+<table id="repricing-table">
+  <thead>
+    <tr>
+      <th>Gas param</th>
+      <th>Category</th>
+      <th>Worst client</th>
+      <th>Current</th>
+      <th>Proposed</th>
+      <th>&Delta;</th>
+      <th>&Delta;&#37;</th>
+      <th>Needs&nbsp;&uarr;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="1.0047238380601524e-05" data-current="3">
+      <td class="param"><code>OPCODE_ADD</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="2.333141333885947e-05" data-current="8">
+      <td class="param"><code>OPCODE_ADDMOD</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">8</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="1.5153297943120834e-05" data-current="5">
+      <td class="param"><code>OPCODE_DIV</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="0.0010938695063995" data-current="10">
+      <td class="param"><code>OPCODE_EXP_BASE</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">10</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="1.9518163869431905e-05" data-current="5">
+      <td class="param"><code>OPCODE_MOD</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="9.880714279903596e-06" data-current="5">
+      <td class="param"><code>OPCODE_MUL</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="3.5696378338528256e-05" data-current="8">
+      <td class="param"><code>OPCODE_MULMOD</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">8</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="1.6546109013629162e-05" data-current="5">
+      <td class="param"><code>OPCODE_SDIV</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="2.203435182773129e-05" data-current="5">
+      <td class="param"><code>OPCODE_SIGNEXTEND</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="2.0127604072615668e-05" data-current="5">
+      <td class="param"><code>OPCODE_SMOD</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Arithmetic" data-client="besu"
+        data-runtime="1.062650457246921e-05" data-current="3">
+      <td class="param"><code>OPCODE_SUB</code></td>
+      <td>Arithmetic</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="BLS12-381" data-client="besu"
+        data-runtime="0.0017431065945297" data-current="375">
+      <td class="param"><code>PRECOMPILE_BLS_G1ADD</code></td>
+      <td>BLS12-381</td>
+      <td>besu</td>
+      <td class="current">375</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="BLS12-381" data-client="erigon"
+        data-runtime="0.010372295419439" data-current="5500">
+      <td class="param"><code>PRECOMPILE_BLS_G1MAP</code></td>
+      <td>BLS12-381</td>
+      <td>erigon</td>
+      <td class="current">5500</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="BLS12-381" data-client="besu"
+        data-runtime="0.0021167881474208" data-current="600">
+      <td class="param"><code>PRECOMPILE_BLS_G2ADD</code></td>
+      <td>BLS12-381</td>
+      <td>besu</td>
+      <td class="current">600</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="BLS12-381" data-client="erigon"
+        data-runtime="0.0448965111249839" data-current="23800">
+      <td class="param"><code>PRECOMPILE_BLS_G2MAP</code></td>
+      <td>BLS12-381</td>
+      <td>erigon</td>
+      <td class="current">23800</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="8.465927754256519e-06" data-current="3">
+      <td class="param"><code>OPCODE_AND</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="9.566795177506436e-06" data-current="3">
+      <td class="param"><code>OPCODE_BYTE</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="3.936627102850435e-06" data-current="5">
+      <td class="param"><code>OPCODE_CLZ</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">5</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="4.178922523429293e-06" data-current="3">
+      <td class="param"><code>OPCODE_NOT</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="8.524172240014657e-06" data-current="3">
+      <td class="param"><code>OPCODE_OR</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="1.981376210885392e-05" data-current="3">
+      <td class="param"><code>OPCODE_SAR</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="5.303862689664328e-06" data-current="3">
+      <td class="param"><code>OPCODE_SHL</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="5.0245210599395715e-06" data-current="3">
+      <td class="param"><code>OPCODE_SHR</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Bitwise" data-client="besu"
+        data-runtime="7.511208661920352e-06" data-current="3">
+      <td class="param"><code>OPCODE_XOR</code></td>
+      <td>Bitwise</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.5695604233639813e-06" data-current="2">
+      <td class="param"><code>OPCODE_BASEFEE</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.5326723437737055e-06" data-current="2">
+      <td class="param"><code>OPCODE_BLOBBASEFEE</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.541721958635796e-06" data-current="2">
+      <td class="param"><code>OPCODE_CHAINID</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="erigon"
+        data-runtime="5.586026426249474e-06" data-current="2">
+      <td class="param"><code>OPCODE_COINBASE</code></td>
+      <td>Block/tx</td>
+      <td>erigon</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.804684139420664e-06" data-current="2">
+      <td class="param"><code>OPCODE_GASLIMIT</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.4074146277525595e-06" data-current="2">
+      <td class="param"><code>OPCODE_GASPRICE</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.818243231982728e-06" data-current="2">
+      <td class="param"><code>OPCODE_NUMBER</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="erigon"
+        data-runtime="5.719103704736268e-06" data-current="2">
+      <td class="param"><code>OPCODE_ORIGIN</code></td>
+      <td>Block/tx</td>
+      <td>erigon</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.60348802743442e-06" data-current="2">
+      <td class="param"><code>OPCODE_PREVRANDAO</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Block/tx" data-client="besu"
+        data-runtime="3.814447734821336e-06" data-current="2">
+      <td class="param"><code>OPCODE_TIMESTAMP</code></td>
+      <td>Block/tx</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="erigon"
+        data-runtime="5.569183233537793e-06" data-current="2">
+      <td class="param"><code>OPCODE_ADDRESS</code></td>
+      <td>Call context</td>
+      <td>erigon</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="besu"
+        data-runtime="8.320720568152291e-05" data-current="3">
+      <td class="param"><code>OPCODE_CALLDATACOPY_BASE</code></td>
+      <td>Call context</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="geth"
+        data-runtime="9.117224750294417e-05" data-current="3">
+      <td class="param"><code>OPCODE_CALLDATALOAD</code></td>
+      <td>Call context</td>
+      <td>geth</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="besu"
+        data-runtime="3.994445966494949e-06" data-current="2">
+      <td class="param"><code>OPCODE_CALLDATASIZE</code></td>
+      <td>Call context</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="erigon"
+        data-runtime="5.590969187852298e-06" data-current="2">
+      <td class="param"><code>OPCODE_CALLER</code></td>
+      <td>Call context</td>
+      <td>erigon</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="besu"
+        data-runtime="4.9571051213099935e-06" data-current="2">
+      <td class="param"><code>OPCODE_CALLVALUE</code></td>
+      <td>Call context</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="besu"
+        data-runtime="3.996526151306159e-05" data-current="3">
+      <td class="param"><code>OPCODE_RETURNDATACOPY_BASE</code></td>
+      <td>Call context</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Call context" data-client="besu"
+        data-runtime="5.66249557935352e-06" data-current="2">
+      <td class="param"><code>OPCODE_RETURNDATASIZE</code></td>
+      <td>Call context</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="1.2621416024160628e-05" data-current="3">
+      <td class="param"><code>OPCODE_EQ</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="2.1506010243283795e-05" data-current="3">
+      <td class="param"><code>OPCODE_GT</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="4.052605080183317e-06" data-current="3">
+      <td class="param"><code>OPCODE_ISZERO</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="2.1607146332035873e-05" data-current="3">
+      <td class="param"><code>OPCODE_LT</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="8.25813089297124e-06" data-current="3">
+      <td class="param"><code>OPCODE_SGT</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Comparison" data-client="besu"
+        data-runtime="9.35004076090277e-06" data-current="3">
+      <td class="param"><code>OPCODE_SLT</code></td>
+      <td>Comparison</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Control flow" data-client="besu"
+        data-runtime="3.6130001326843146e-06" data-current="2">
+      <td class="param"><code>OPCODE_GAS</code></td>
+      <td>Control flow</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Control flow" data-client="besu"
+        data-runtime="2.787843235819367e-05" data-current="8">
+      <td class="param"><code>OPCODE_JUMP</code></td>
+      <td>Control flow</td>
+      <td>besu</td>
+      <td class="current">8</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Control flow" data-client="besu"
+        data-runtime="1.8973861277016571e-06" data-current="1">
+      <td class="param"><code>OPCODE_JUMPDEST</code></td>
+      <td>Control flow</td>
+      <td>besu</td>
+      <td class="current">1</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Control flow" data-client="besu"
+        data-runtime="6.968489638670634e-06" data-current="10">
+      <td class="param"><code>OPCODE_JUMPI</code></td>
+      <td>Control flow</td>
+      <td>besu</td>
+      <td class="current">10</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Control flow" data-client="besu"
+        data-runtime="3.61555535524498e-06" data-current="2">
+      <td class="param"><code>OPCODE_PC</code></td>
+      <td>Control flow</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Hashing" data-client="besu"
+        data-runtime="0.0001102407325901" data-current="30">
+      <td class="param"><code>OPCODE_KECCAK256_BASE</code></td>
+      <td>Hashing</td>
+      <td>besu</td>
+      <td class="current">30</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Hashing" data-client="nethermind"
+        data-runtime="2.2335257352194506e-05" data-current="6">
+      <td class="param"><code>OPCODE_KECCAK256_PER_WORD</code></td>
+      <td>Hashing</td>
+      <td>nethermind</td>
+      <td class="current">6</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Memory" data-client="besu"
+        data-runtime="5.100096333548802e-05" data-current="3">
+      <td class="param"><code>OPCODE_MCOPY_BASE</code></td>
+      <td>Memory</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Memory" data-client="besu"
+        data-runtime="1.2473448882896496e-05" data-current="3">
+      <td class="param"><code>OPCODE_MLOAD_BASE</code></td>
+      <td>Memory</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Memory" data-client="besu"
+        data-runtime="3.794688214122974e-06" data-current="2">
+      <td class="param"><code>OPCODE_MSIZE</code></td>
+      <td>Memory</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Memory" data-client="besu"
+        data-runtime="1.1126984798956496e-05" data-current="3">
+      <td class="param"><code>OPCODE_MSTORE8_BASE</code></td>
+      <td>Memory</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Memory" data-client="besu"
+        data-runtime="1.647370940276998e-05" data-current="3">
+      <td class="param"><code>OPCODE_MSTORE_BASE</code></td>
+      <td>Memory</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0009380582892892" data-current="0">
+      <td class="param"><code>PRECOMPILE_BLAKE2F_BASE</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">0</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="besu"
+        data-runtime="2.2209551847594964e-06" data-current="1">
+      <td class="param"><code>PRECOMPILE_BLAKE2F_PER_ROUND</code></td>
+      <td>Precompile</td>
+      <td>besu</td>
+      <td class="current">1</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0010753805466295" data-current="150">
+      <td class="param"><code>PRECOMPILE_ECADD</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">150</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="reth"
+        data-runtime="0.0083921249191521" data-current="6000">
+      <td class="param"><code>PRECOMPILE_ECMUL</code></td>
+      <td>Precompile</td>
+      <td>reth</td>
+      <td class="current">6000</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="reth"
+        data-runtime="0.0824659741485765" data-current="45000">
+      <td class="param"><code>PRECOMPILE_ECPAIRING_BASE</code></td>
+      <td>Precompile</td>
+      <td>reth</td>
+      <td class="current">45000</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="nethermind"
+        data-runtime="0.1171688871420714" data-current="34000">
+      <td class="param"><code>PRECOMPILE_ECPAIRING_PER_POINT</code></td>
+      <td>Precompile</td>
+      <td>nethermind</td>
+      <td class="current">34000</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0084646062304449" data-current="3000">
+      <td class="param"><code>PRECOMPILE_ECRECOVER</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">3000</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0009541732234979" data-current="15">
+      <td class="param"><code>PRECOMPILE_IDENTITY_BASE</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">15</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="geth"
+        data-runtime="9.435479635315751e-06" data-current="3">
+      <td class="param"><code>PRECOMPILE_IDENTITY_PER_WORD</code></td>
+      <td>Precompile</td>
+      <td>geth</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0140501979167221" data-current="6900">
+      <td class="param"><code>PRECOMPILE_P256VERIFY</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">6900</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="nethermind"
+        data-runtime="0.2343618309341056" data-current="50000">
+      <td class="param"><code>PRECOMPILE_POINT_EVALUATION</code></td>
+      <td>Precompile</td>
+      <td>nethermind</td>
+      <td class="current">50000</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0009343797938943" data-current="600">
+      <td class="param"><code>PRECOMPILE_RIPEMD160_BASE</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">600</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="besu"
+        data-runtime="5.413890397204548e-05" data-current="120">
+      <td class="param"><code>PRECOMPILE_RIPEMD160_PER_WORD</code></td>
+      <td>Precompile</td>
+      <td>besu</td>
+      <td class="current">120</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="erigon"
+        data-runtime="0.0009584424454663" data-current="60">
+      <td class="param"><code>PRECOMPILE_SHA256_BASE</code></td>
+      <td>Precompile</td>
+      <td>erigon</td>
+      <td class="current">60</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Precompile" data-client="geth"
+        data-runtime="3.0626171070178995e-06" data-current="12">
+      <td class="param"><code>PRECOMPILE_SHA256_PER_WORD</code></td>
+      <td>Precompile</td>
+      <td>geth</td>
+      <td class="current">12</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Stack" data-client="besu"
+        data-runtime="3.8049565865466046e-06" data-current="3">
+      <td class="param"><code>OPCODE_DUP</code></td>
+      <td>Stack</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Stack" data-client="besu"
+        data-runtime="4.482450986685209e-06" data-current="3">
+      <td class="param"><code>OPCODE_PUSH</code></td>
+      <td>Stack</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Stack" data-client="besu"
+        data-runtime="2.6216739112873544e-06" data-current="2">
+      <td class="param"><code>OPCODE_PUSH0</code></td>
+      <td>Stack</td>
+      <td>besu</td>
+      <td class="current">2</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+    <tr data-category="Stack" data-client="besu"
+        data-runtime="3.168585877185588e-06" data-current="3">
+      <td class="param"><code>OPCODE_SWAP</code></td>
+      <td>Stack</td>
+      <td>besu</td>
+      <td class="current">3</td>
+      <td class="proposed"></td>
+      <td class="diff"></td>
+      <td class="pct"></td>
+      <td class="flag"></td>
+    </tr>
+  </tbody>
+</table>
+  </main>
+
+  <footer class="site-footer">
+    <p class="repro">
+      Suites
+<code>3182dda7b93dee61</code>, <code>a11611f320a39015</code>      · run 2026-06-10T11:48:58Z
+      · evm-gasfit 0.0.4
+      · benchmarkoor-fetch 0.3.0
+      · commit <code>1f87b93</code>
+    </p>
+  </footer>
+<script src="anchor_repricing.js"></script>
+</body>
+</html>
